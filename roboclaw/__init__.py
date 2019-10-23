@@ -1,3 +1,3 @@
 """module management for the RoboClaw package"""
-from .roboclaw_3 import Roboclaw
+from .roboclaw import Roboclaw
 __all__ = ['Roboclaw']
