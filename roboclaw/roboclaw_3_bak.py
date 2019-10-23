@@ -1,9 +1,10 @@
 """RoboClaw library ported from original code written by a 7th grader"""
+import time
 import random
 import serial
-import time
 from .serial_commands import Cmd
 
+# pylint: disable=line-too-long,invalid-name,missing-function-docstring
 
 class Roboclaw:
     """Roboclaw Interface Class"""
@@ -14,6 +15,7 @@ class Roboclaw:
         self.timeout = timeout
         self._trystimeout = retries
         self._crc = 0
+        self._port = None
 
     # Private Functions
     def _crc_clear(self):
@@ -779,35 +781,35 @@ class Roboclaw:
             return data
         return (0, 0, 0, 0, 0)
 
-    def SetMainVoltages(self, address, min, max):
-        return self._write22(address, Cmd.SETMAINVOLTAGES, min, max)
+    def SetMainVoltages(self, address, minimum, maximum):
+        return self._write22(address, Cmd.SETMAINVOLTAGES, minimum, maximum)
 
-    def SetLogicVoltages(self, address, min, max):
-        return self._write22(address, Cmd.SETLOGICVOLTAGES, min, max)
+    def SetLogicVoltages(self, address, minimum, maximum):
+        return self._write22(address, Cmd.SETLOGICVOLTAGES, minimum, maximum)
 
     def ReadMinMaxMainVoltages(self, address):
         val = self._read4(address, Cmd.GETMINMAXMAINVOLTAGES)
         if val[0]:
-            min = val[1] >> 16
-            max = val[1] & 0xFFFF
-            return (1, min, max)
+            minimum = val[1] >> 16
+            maximum = val[1] & 0xFFFF
+            return (1, minimum, maximum)
         return (0, 0, 0)
 
     def ReadMinMaxLogicVoltages(self, address):
         val = self._read4(address, Cmd.GETMINMAXLOGICVOLTAGES)
         if val[0]:
-            min = val[1] >> 16
-            max = val[1] & 0xFFFF
-            return (1, min, max)
+            minimum = val[1] >> 16
+            maximum = val[1] & 0xFFFF
+            return (1, minimum, maximum)
         return (0, 0, 0)
 
-    def SetM1PositionPID(self, address, kp, ki, kd, kimax, deadzone, min, max):
-        # return self._write4444444(address, Cmd.SETM1POSPID, long(kd * 1024), long(kp * 1024), long(ki * 1024), kimax, deadzone, min, max)
-        return self._write4444444(address, Cmd.SETM1POSPID, kd * 1024, kp * 1024, ki * 1024, kimax, deadzone, min, max)
+    def SetM1PositionPID(self, address, kp, ki, kd, kimax, deadzone, minimum, maximum):
+        # return self._write4444444(address, Cmd.SETM1POSPID, long(kd * 1024), long(kp * 1024), long(ki * 1024), kimax, deadzone, minimum, maximum)
+        return self._write4444444(address, Cmd.SETM1POSPID, kd * 1024, kp * 1024, ki * 1024, kimax, deadzone, minimum, maximum)
 
-    def SetM2PositionPID(self, address, kp, ki, kd, kimax, deadzone, min, max):
-        # return self._write4444444(address, Cmd.SETM2POSPID, long(kd * 1024), long(kp * 1024), long(ki * 1024), kimax, deadzone, min, max)
-        return self._write4444444(address, Cmd.SETM2POSPID, kd * 1024, kp * 1024, ki * 1024, kimax, deadzone, min, max)
+    def SetM2PositionPID(self, address, kp, ki, kd, kimax, deadzone, miimum, maximum):
+        # return self._write4444444(address, Cmd.SETM2POSPID, long(kd * 1024), long(kp * 1024), long(ki * 1024), kimax, deadzone, miimum, maximum)
+        return self._write4444444(address, Cmd.SETM2POSPID, kd * 1024, kp * 1024, ki * 1024, kimax, deadzone, miimum, maximum)
 
     def ReadM1PositionPID(self, address):
         data = self._read_n(address, Cmd.READM1POSPID, 7)
@@ -865,8 +867,8 @@ class Roboclaw:
                 break
         return (0, 0)
 
-    def SetDeadBand(self, address, min, max):
-        return self._write11(address, Cmd.SETDEADBAND, min, max)
+    def SetDeadBand(self, address, mimum, maximum):
+        return self._write11(address, Cmd.SETDEADBAND, mimum, maximum)
 
     def GetDeadBand(self, address):
         val = self._read2(address, Cmd.GETDEADBAND)
@@ -916,11 +918,11 @@ class Roboclaw:
     def GetConfig(self, address):
         return self._read2(address, Cmd.GETCONFIG)
 
-    def SetM1MaxCurrent(self, address, max):
-        return self._write44(address, Cmd.SETM1MAXCURRENT, max, 0)
+    def SetM1MaxCurrent(self, address, maximum):
+        return self._write44(address, Cmd.SETM1MAXCURRENT, maximum, 0)
 
-    def SetM2MaxCurrent(self, address, max):
-        return self._write44(address, Cmd.SETM2MAXCURRENT, max, 0)
+    def SetM2MaxCurrent(self, address, maximum):
+        return self._write44(address, Cmd.SETM2MAXCURRENT, maximum, 0)
 
     def ReadM1MaxCurrent(self, address):
         data = self._read_n(address, Cmd.GETM1MAXCURRENT, 2)
@@ -979,6 +981,6 @@ class Roboclaw:
         try:
             self._port = serial.Serial(
                 port=self.comport, baudrate=self.rate, timeout=1, interCharTimeout=self.timeout)
-        except:
+        except serial.SerialException:
             return 0
         return 1
