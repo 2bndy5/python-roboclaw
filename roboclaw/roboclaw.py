@@ -442,7 +442,7 @@ class Roboclaw:
         The Buffer argument can be set to a 1 or 0. If a value of 0 is used the command will be buffered and executed in the order sent. If a value of 1 is used the current running command is stopped, any other commands in the buffer are deleted and the new command is executed.
         """
         # :Sends: [Address, 43, SpeedM1(4 Bytes), DistanceM1(4 Bytes), SpeedM2(4 Bytes), DistanceM2(4 Bytes), Buffer]
-        return self._writeS44S441(pack('>biIiIb', Cmd.MIXEDSPEEDDIST, speed1, distance1, speed2, distance2, buffer))
+        return self._send(pack('>biIiIb', Cmd.MIXEDSPEEDDIST, speed1, distance1, speed2, distance2, buffer))
 
     def speed_accel_distance_m1(self, accel, speed, distance, buffer):
         """Drive M1 with a speed, acceleration and distance value. The sign indicates which direction the motor will run. The acceleration and distance values are not signed. This command is used to control the motors top speed, total distanced traveled and at what incremental acceleration value to use until the top speed is reached. Each motor channel M1 and M2 have separate buffers. This command will execute immediately if no other command for that channel is executing, otherwise the command will be buffered in the order it was sent. Any buffered or executing command can be stopped when a new command is issued by setting the Buffer argument. All values used are in quad pulses per second.
@@ -621,64 +621,53 @@ class Roboclaw:
 
         :Returns: [P(4 bytes), I(4 bytes), D(4 bytes), MaxI(4 byte), Deadzone(4 byte), MinPos(4 byte), MaxPos(4 byte)]
         """
-        data = self._read_n(self._address, Cmd.READM1POSPID, 7)
-        if data[0]:
-            data[1] /= 1024.0
-            data[2] /= 1024.0
-            data[3] /= 1024.0
-            return data
-        return (0, 0, 0, 0, 0, 0, 0, 0)
+        data = unpack('>IIIIIII', self._recv(pack('>b', Cmd.READM1POSPID), 28))
+        if data:
+            return (data[0], data[1] / 1024.0, data[2] / 1024.0, data[3] / 1024.0)
+        return (0, 0, 0, 0, 0, 0, 0)
 
     def read_m2_position_pid(self):
         """Read the Position PID Settings.
 
         :Returns: [P(4 bytes), I(4 bytes), D(4 bytes), MaxI(4 byte), Deadzone(4 byte), MinPos(4 byte), MaxPos(4 byte)]
         """
-        data = self._read_n(self._address, Cmd.READM2POSPID, 7)
-        if data[0]:
-            data[1] /= 1024.0
-            data[2] /= 1024.0
-            data[3] /= 1024.0
-            return data
-        return (0, 0, 0, 0, 0, 0, 0, 0)
+        data = unpack('>IIIIIII', self._recv(pack('>b', Cmd.READM2POSPID, 28)))
+        if data:
+            return (data[0], data[1] / 1024.0, data[2] / 1024.0, data[3] / 1024.0)
+        return (0, 0, 0, 0, 0, 0, 0)
 
     def speed_accel_deccel_position_m1(self, accel, speed, deccel, position, buffer):
         """Move M1 position from the current position to the specified new position and hold the new position. Accel sets the acceleration value and deccel the decceleration value. QSpeed sets the speed in quadrature pulses the motor will run at after acceleration and before decceleration.
-
-        :Sends: [Address, 65, Accel(4 bytes), Speed(4 Bytes), Deccel(4 bytes), Position(4 Bytes), Buffer]
         """
-        return self._write44441(self._address, Cmd.M1SPEEDACCELDECCELPOS, accel, speed, deccel, position, buffer)
+        # :Sends: [Address, 65, Accel(4 bytes), Speed(4 Bytes), Deccel(4 bytes), Position(4 Bytes), Buffer]
+        return self._send('>bIIIIb', Cmd.M1SPEEDACCELDECCELPOS, accel, speed, deccel, position, buffer)
 
     def speed_accel_deccel_position_m2(self, accel, speed, deccel, position, buffer):
         """Move M2 position from the current position to the specified new position and hold the new position. Accel sets the acceleration value and deccel the decceleration value. QSpeed sets the speed in quadrature pulses the motor will run at after acceleration and before decceleration.
-
-        :Sends: [Address, 66, Accel(4 bytes), Speed(4 Bytes), Deccel(4 bytes), Position(4 Bytes), Buffer]
         """
-        return self._write44441(self._address, Cmd.M2SPEEDACCELDECCELPOS, accel, speed, deccel, position, buffer)
+        # :Sends: [Address, 66, Accel(4 bytes), Speed(4 Bytes), Deccel(4 bytes), Position(4 Bytes), Buffer]
+        return self._send(pack('>bIIIIb', Cmd.M2SPEEDACCELDECCELPOS, accel, speed, deccel, position, buffer))
 
     def speed_accel_deccel_position_m1_m2(self, accel1, speed1, deccel1, position1, accel2, speed2, deccel2, position2, buffer):
         """Move M1 & M2 positions from their current positions to the specified new positions and hold the new positions. Accel sets the acceleration value and deccel the decceleration value. QSpeed sets the speed in quadrature pulses the motor will run at after acceleration and before decceleration.
-
-        :Sends: [Address, 67, AccelM1(4 bytes), SpeedM1(4 Bytes), DeccelM1(4 bytes), PositionM1(4 Bytes), AccelM2(4 bytes), SpeedM2(4 Bytes), DeccelM2(4 bytes), PositionM2(4 Bytes), Buffer]
         """
-        return self._write444444441(self._address, Cmd.MIXEDSPEEDACCELDECCELPOS, accel1, speed1, deccel1, position1, accel2, speed2, deccel2, position2, buffer)
+        # :Sends: [Address, 67, AccelM1(4 bytes), SpeedM1(4 Bytes), DeccelM1(4 bytes), PositionM1(4 Bytes), AccelM2(4 bytes), SpeedM2(4 Bytes), DeccelM2(4 bytes), PositionM2(4 Bytes), Buffer]
+        return self._send(pack('>bIIIIIIIIb', Cmd.MIXEDSPEEDACCELDECCELPOS, accel1, speed1, deccel1, position1, accel2, speed2, deccel2, position2, buffer))
 
     def set_m1_default_accel(self, accel):
         """Set the default acceleration for M1 when using duty cycle commands(Cmds 32,33 and 34) or when using Standard Serial, RC and Analog PWM modes.
-
-        :Sends: [Address, 68, Accel(4 bytes)]
         """
-        return self._write4(self._address, Cmd.SETM1DEFAULTACCEL, accel)
+        # :Sends: [Address, 68, Accel(4 bytes)]
+        return self._send(pack('>bI', Cmd.SETM1DEFAULTACCEL, accel))
 
     def set_m2_default_accel(self, accel):
         """Set the default acceleration for M2 when using duty cycle commands(Cmds 32,33 and 34) or when using Standard Serial, RC and Analog PWM modes.
-
-        :Sends: [Address, 69, Accel(4 bytes)]
         """
-        return self._write4(self._address, Cmd.SETM2DEFAULTACCEL, accel)
+        # :Sends: [Address, 69, Accel(4 bytes)]
+        return self._send(pack('>bI', Cmd.SETM2DEFAULTACCEL, accel))
 
     def set_pin_functions(self, s3mode, s4mode, s5mode):
-        return self._write111(self._address, Cmd.SETPINFUNCTIONS, s3mode, s4mode, s5mode)
+        return self._send(pack('>bbbb', Cmd.SETPINFUNCTIONS, s3mode, s4mode, s5mode))
 
     def read_pin_functions(self):
         trys = self._retries
@@ -699,36 +688,35 @@ class Roboclaw:
         return (0, 0)
 
     def set_deadband(self, minimum, maximum):
-        return self._write11(self._address, Cmd.SETDEADBAND, minimum, maximum)
+        return self._send(pack('>bbb', Cmd.SETDEADBAND, minimum, maximum))
 
     def get_deadband(self):
-        val = self._read2(self._address, Cmd.GETDEADBAND)
-        if val[0]:
+        val = unpack(self._recv(pack('>b', Cmd.GETDEADBAND), 2))
+        if val:
             return (1, val[1] >> 8, val[1] & 0xFF)
         return (0, 0, 0)
 
     def restore_defaults(self):
         """Reset Settings to factory defaults.
 
-        :Sends: [Address, 80]
-
         .. warning:: TTL Serial: Baudrate will change if not already set to 38400.  Communications will be lost.
         """
-        return self._send(bytes([self._address, Cmd.RESTOREDEFAULTS]))
+        # :Sends: [Address, 80]
+        return self._send(pack('>b', Cmd.RESTOREDEFAULTS))
 
     def read_temp(self):
         """Read the board temperature. Value returned is in 10ths of degrees.
 
         :Returns: [Temperature(2 bytes)]
         """
-        return self._read2(self._address, Cmd.GETTEMP)
+        return unpack('>h', self._recv(pack('>b', Cmd.GETTEMP), 2))
 
     def read_temp2(self):
         """Read the second board temperature(only on supported units). Value returned is in 10ths of degrees.
 
         :Returns: [Temperature(2 bytes)]
         """
-        return self._read2(self._address, Cmd.GETTEMP2)
+        return self._recv(pack('>b', Cmd.GETTEMP2), 2)
 
     def read_error(self):
         """Read the current unit status.
@@ -753,78 +741,72 @@ class Roboclaw:
         Temperature2 Warning      0x2000
         ========================= ===============
         """
-        return self._read4(self._address, Cmd.GETERROR)
+        return self._recv(pack('>b', Cmd.GETERROR), 4)
 
     def read_encoder_modes(self):
         """Read the encoder pins assigned for both motors.
 
         :Returns: [Enc1Mode, Enc2Mode]
         """
-        val = self._read2(self._address, Cmd.GETENCODERMODE)
-        if val[0]:
+        val = self._recv(pack('>b', Cmd.GETENCODERMODE), 2)
+        if val:
             return (1, val[1] >> 8, val[1] & 0xFF)
         return (0, 0, 0)
 
     def set_m1_encoder_mode(self, mode):
         """Set the Encoder Pin for motor 1. See `read_encoder_modes()`.
-
-        :Sends: [Address, 92, Pin]
         """
-        return self._send(bytes([self._address, Cmd.SETM1ENCODERMODE, mode]))
+        # :Sends: [Address, 92, Pin]
+        return self._send(pack('>bb', Cmd.SETM1ENCODERMODE, mode))
 
     def set_m2_encoder_mode(self, mode):
         """Set the Encoder Pin for motor 2. See `read_encoder_modes()`.
-
-        :Sends: [Address, 93, Pin]
         """
-        return self._send(bytes([self._address, Cmd.SETM2ENCODERMODE, mode]))
+        # :Sends: [Address, 93, Pin]
+        return self._send(pack('>bb', Cmd.SETM2ENCODERMODE, mode))
 
     def write_nvm(self):
         """Writes all settings to non-volatile memory. Values will be loaded after each power up.
-
-        :Sends: [Address, 94]
         """
-        return self._write4(self._address, Cmd.WRITENVM, 0xE22EAB7A)
+        # :Sends: [Address, 94]
+        return self._send('>bI', Cmd.WRITENVM, 0xE22EAB7A)
 
     def read_nvm(self):
         """Read all settings from non-volatile memory.
 
-        :Sends: [Address, 95] :Returns: [Enc1Mode, Enc2Mode]
-
         .. warning:: TTL Serial: If baudrate changes or the control mode changes communications will be lost.
         """
-        return self._send(bytes([self._address, Cmd.READNVM]))
+        # :Sends: [Address, 95] :Returns: [Enc1Mode, Enc2Mode]
+        return self._send(pack('>b', Cmd.READNVM))
 
     def set_config(self, config):
         # Warning(TTL Serial): If control mode is changed from packet serial mode when setting config communications will be lost!
         # Warning(TTL Serial): If baudrate of packet serial mode is changed communications will be lost!
-        return self._write2(self._address, Cmd.SETCONFIG, config)
+        return self._send('>bh', Cmd.SETCONFIG, config)
 
     def get_config(self):
-        return self._read2(self._address, Cmd.GETCONFIG)
+        return self._recv(pack('>b', Cmd.GETCONFIG), 2)
 
     def set_m1_max_current(self, maximum):
         """Set Motor 1 Maximum Current Limit. Current value is in 10ma units. To calculate multiply current limit by 100.
-
-        :Sends: [Address, 134, MaxCurrent(4 bytes), 0, 0, 0, 0]
         """
-        return self._write44(self._address, Cmd.SETM1MAXCURRENT, maximum, 0)
+        # :Sends: [Address, 134, MaxCurrent(4 bytes), 0, 0, 0, 0]
+        return self._send(pack('>bII', Cmd.SETM1MAXCURRENT, maximum, 0))
 
     def set_m2_max_current(self, maximum):
         """Set Motor 2 Maximum Current Limit. Current value is in 10ma units. To calculate multiply current limit by 100.
-
-        :Sends: [Address, 134, MaxCurrent(4 bytes), 0, 0, 0, 0]
         """
-        return self._write44(self._address, Cmd.SETM2MAXCURRENT, maximum, 0)
+        # :Sends: [Address, 134, MaxCurrent(4 bytes), 0, 0, 0, 0]
+        return self._send(pack('>bII', Cmd.SETM2MAXCURRENT, maximum, 0))
 
     def read_m1_max_current(self):
         """Read Motor 1 Maximum Current Limit. Current value is in 10ma units. To calculate divide value by 100. MinCurrent is always 0.
 
         :Returns: [MaxCurrent(4 bytes), MinCurrent(4 bytes)]
         """
-        data = self._read_n(self._address, Cmd.GETM1MAXCURRENT, 2)
-        if data[0]:
-            return (1, data[1])
+        data = unpack('>II', self._recv(pack('>b', Cmd.GETM1MAXCURRENT), 8))
+        if data:
+            return (data[0], data[1])
         return (0, 0)
 
     def read_m2_max_current(self):
@@ -832,32 +814,30 @@ class Roboclaw:
 
         :Returns: [MaxCurrent(4 bytes), MinCurrent(4 bytes)]
         """
-        data = self._read_n(self._address, Cmd.GETM2MAXCURRENT, 2)
+        data = unpack('>II', self._recv(pack('>b', Cmd.GETM2MAXCURRENT), 8))
         if data[0]:
-            return (1, data[1])
+            return (data[0], data[1])
         return (0, 0)
 
     def set_pwm_mode(self, mode):
         """Set PWM Drive mode. Locked Antiphase(0) or Sign Magnitude(1).
-
-        :Sends: [Address, 148, Mode]
         """
-        return self._send(bytes([self._address, Cmd.SETPWMMODE, mode]))
+        # :Sends: [Address, 148, Mode]
+        return self._send(pack('>bb', Cmd.SETPWMMODE, mode))
 
     def read_pwm_mode(self):
         """Read PWM Drive mode. See `set_pwm_mode()`.
 
         :Returns: [PWMMode]
         """
-        return self._read1(self._address, Cmd.GETPWMMODE)
+        return unpack('>b', self._recv(pack('>b', Cmd.GETPWMMODE), 1))
 
     def read_eeprom(self, ee_address):
         """Read a value from the User EEProm memory(256 bytes).
 
-        :Sends: [Address, 252, EEProm Address(byte)]
-
         :Returns: [Value(2 bytes)]
         """
+        # :Sends: [Address, 252, EEProm Address(byte)]
         trys = self._retries
         while trys:
             self._port.flushInput()
@@ -876,11 +856,9 @@ class Roboclaw:
 
     def write_eeprom(self, ee_address, ee_word):
         """Get Priority Levels.
-
-        :Sends: [Address, 253, Address(byte), Value(2 bytes)]
         """
-        retval = self._write111(self._address, Cmd.WRITEEEPROM,
-                                ee_address, ee_word >> 8, ee_word & 0xFF)
+        # :Sends: [Address, 253, Address(byte), Value(2 bytes)]
+        retval = self._send(pack('>bbbb', Cmd.WRITEEEPROM, ee_address, ee_word >> 8, ee_word & 0xFF))
         if retval:
             trys = self._retries
             while trys:
