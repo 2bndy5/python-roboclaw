@@ -1,18 +1,17 @@
 """roboclaw driver module contains the roboclaw driver class that controls
 the roboclaw via a UART serial"""
-import time
 import os
 from struct import pack, unpack
 from .serial_commands import Cmd
 from .data_manip import crc16
 
-# pylint: disable=line-too-long,invalid-name
+# pylint: disable=line-too-long,invalid-name,too-many-function-args,too-many-public-methods
 
 class Roboclaw:
     """A driver class for the RoboClaw Motor Controller device.
 
     :param ~serial.Serial serial_obj: The serial obj associated with the serial port that is connected to the RoboClaw.
-    :param int address: The unique address assigned to the particular RoboClaw. Valid addresses range [`0x80``, ``0x87``].
+    :param int address: The unique address assigned to the particular RoboClaw. Valid addresses range [``0x80``, ``0x87``].
     :param int retries: The amount of attempts to read/write data over the serial port. Defaults to 3.
     """
     def __init__(self, serial_obj, address, retries=3):
@@ -22,12 +21,20 @@ class Roboclaw:
         self._retries = retries
         self._address = bytes([address])
 
-    def _send(self, buf, crc=16):
-        buf = self._address + buf
-        if crc == 16:
-            buf += crc16(buf)
-        with self._port as ser:
-            ser.write(buf)
+    def _send(self, buf, crc=16, ack=b'\xFF'):
+        trys = self._retries
+        while trys:
+            buf = self._address + buf
+            if crc == 16:
+                buf += crc16(buf)
+            with self._port as ser:
+                ser.write(buf)
+                if ack is not None:
+                    ack = ser.read(1)
+            if ack == b'\xFF' or ack is None:
+                return True
+            trys -= 1
+        return False
 
     def _recv(self, buf, length, crc=16):
         self._send(buf, crc)
@@ -178,7 +185,7 @@ class Roboclaw:
         * Bit2 - Counter Overflow (1= Underflow Occurred, Clear After Reading)
         * Bit3 through Bit7 - Reserved
         """
-        return self._read4_1(self._address, Cmd.GETM1ENC)
+        return unpack('>ib', self._recv(pack('>b', Cmd.GETM1ENC), 5))
 
     def read_encoder_m2(self):
         """ Read M2 encoder count/position.
@@ -226,33 +233,10 @@ class Roboclaw:
 
         The command will return up to 48 bytes. The return string includes the product name and firmware version. The return string is terminated with a line feed (10) and null (0) character.
         """
-        trys = self._retries
-        while trys:
-            self._port.flushInput()
-            self._sendcommand(self._address, Cmd.GETVERSION)
-            string = ""
-            passed = True
-            for _ in range(48):
-                data = self._port.read(1)
-                if data:
-                    val = ord(data)
-                    self._crc_update(val)
-                    if not val:
-                        break
-                    # string += data[0]
-                    string += chr(data[0])
-                else:
-                    passed = False
-                    break
-            if passed:
-                crc = self._readchecksumword()
-                if crc[0]:
-                    if self._crc & 0xFFFF == crc[1] & 0xFFFF:
-                        return (1, string)
-                    else:
-                        time.sleep(0.01)
-            trys -= 1
-        return (0, 0)
+        version = self._recv(pack('>b', Cmd.GETVERSION), 0)
+        if version:
+            return str(version[:-2])
+        return 'Unknown. Read command failed'
 
     def set_enc_m1(self, cnt):
         """Set the value of the Encoder 1 register. Useful when homing motor 1. This command applies to quadrature encoders only."""
@@ -275,7 +259,7 @@ class Roboclaw:
 
         :Returns: [Value.Byte1, Value.Byte0]
         """
-        return self._read2(self._address, Cmd.GETLBATT)
+        return unpack('>bb', self._recv(pack('>b', Cmd.GETLBATT), 2))
 
     def set_min_voltage_logic_battery(self, val):
         """
@@ -475,33 +459,21 @@ class Roboclaw:
 
         The return values represent how many commands per buffer are waiting to be executed. The maximum buffer size per motor is 64 commands(0x3F). A return value of 0x80(128) indicates the buffer is empty. A return value of 0 indiciates the last command sent is executing. A value of 0x80 indicates the last command buffered has finished.
         """
-        val = self._read2(self._address, Cmd.GETBUFFERS)
-        if val[0]:
-            return (1, val[1] >> 8, val[1] & 0xFF)
+        val = unpack('>bb', self._recv(pack('>b', Cmd.GETBUFFERS), 2))
+        if val:
+            return (1, val[0], val[1])
         return (0, 0, 0)
 
     def read_pwms(self):
-        val = self._read4(self._address, Cmd.GETPWMS)
-        if val[0]:
-            pwm1 = val[1] >> 16
-            pwm2 = val[1] & 0xFFFF
-            if pwm1 & 0x8000:
-                pwm1 -= 0x10000
-            if pwm2 & 0x8000:
-                pwm2 -= 0x10000
-            return (1, pwm1, pwm2)
+        val = unpack('>hh', self._recv(pack('>b', Cmd.GETPWMS), 4))
+        if val:
+            return (1, val[0], val[1])
         return (0, 0, 0)
 
     def read_currents(self):
-        val = self._read4(self._address, Cmd.GETCURRENTS)
-        if val[0]:
-            cur1 = val[1] >> 16
-            cur2 = val[1] & 0xFFFF
-            if cur1 & 0x8000:
-                cur1 -= 0x10000
-            if cur2 & 0x8000:
-                cur2 -= 0x10000
-            return (1, cur1, cur2)
+        val = unpack('>hh', self._recv(pack('>b', Cmd.GETCURRENTS), 4))
+        if val:
+            return (1, val[0], val[1])
         return (0, 0, 0)
 
     def speed_accel_m1_m2_2(self, accel1, speed1, accel2, speed2):
@@ -581,11 +553,9 @@ class Roboclaw:
 
         :Returns: [Min(2 bytes), Max(2 bytes)]
         """
-        val = self._read4(self._address, Cmd.GETMINMAXMAINVOLTAGES)
-        if val[0]:
-            minimum = val[1] >> 16
-            maximum = val[1] & 0xFFFF
-            return (1, minimum, maximum)
+        val = unpack('>HH', self._recv(pack('>b', Cmd.GETMINMAXMAINVOLTAGES), 4))
+        if val:
+            return (1, val[0], val[1])
         return (0, 0, 0)
 
     def read_min_max_logic_voltages(self):
@@ -593,11 +563,9 @@ class Roboclaw:
 
         :Returns: [Min(2 bytes), Max(2 bytes)]
         """
-        val = self._read4(self._address, Cmd.GETMINMAXLOGICVOLTAGES)
-        if val[0]:
-            minimum = val[1] >> 16
-            maximum = val[1] & 0xFFFF
-            return (1, minimum, maximum)
+        val = unpack('>HH', self._recv(pack('>b', Cmd.GETMINMAXLOGICVOLTAGES), 4))
+        if val:
+            return (1, val[0], val[1])
         return (0, 0, 0)
 
     def set_m1_position_pid(self, kp, ki, kd, kimax, deadzone, minimum, maximum):
@@ -631,9 +599,9 @@ class Roboclaw:
 
         :Returns: [P(4 bytes), I(4 bytes), D(4 bytes), MaxI(4 byte), Deadzone(4 byte), MinPos(4 byte), MaxPos(4 byte)]
         """
-        data = unpack('>IIIIIII', self._recv(pack('>b', Cmd.READM2POSPID, 28)))
+        data = unpack('>IIIIIII', self._recv(pack('>b', Cmd.READM2POSPID), 28))
         if data:
-            return (data[0], data[1] / 1024.0, data[2] / 1024.0, data[3] / 1024.0)
+            return (1, data[0] / 1024.0, data[1] / 1024.0, data[2] / 1024.0)
         return (0, 0, 0, 0, 0, 0, 0)
 
     def speed_accel_deccel_position_m1(self, accel, speed, deccel, position, buffer):
@@ -670,22 +638,10 @@ class Roboclaw:
         return self._send(pack('>bbbb', Cmd.SETPINFUNCTIONS, s3mode, s4mode, s5mode))
 
     def read_pin_functions(self):
-        trys = self._retries
-        while trys:
-            self._sendcommand(self._address, Cmd.GETPINFUNCTIONS)
-            val1 = self._readbyte()
-            if val1[0]:
-                val2 = self._readbyte()
-                if val1[0]:
-                    val3 = self._readbyte()
-                    if val1[0]:
-                        crc = self._readchecksumword()
-                        if crc[0]:
-                            if self._crc & 0xFFFF != crc[1] & 0xFFFF:
-                                return (0, 0)
-                            return (1, val1[1], val2[1], val3[1])
-            trys -= 1
-        return (0, 0)
+        val = unpack('>bbb', self._recv(pack('>b', Cmd.GETPINFUNCTIONS), 3))
+        if val:
+            return (1, val[0], val[1], val[2])
+        return (0, 0, 0)
 
     def set_deadband(self, minimum, maximum):
         return self._send(pack('>bbb', Cmd.SETDEADBAND, minimum, maximum))
@@ -838,34 +794,16 @@ class Roboclaw:
         :Returns: [Value(2 bytes)]
         """
         # :Sends: [Address, 252, EEProm Address(byte)]
-        trys = self._retries
-        while trys:
-            self._port.flushInput()
-            self._sendcommand(self._address, Cmd.READEEPROM)
-            self._crc_update(ee_address)
-            self._port.write(bytes([ee_address]))
-            val1 = self._readword()
-            if val1[0]:
-                crc = self._readchecksumword()
-                if crc[0]:
-                    if self._crc & 0xFFFF != crc[1] & 0xFFFF:
-                        return (0, 0)
-                    return (1, val1[1])
-            trys -= 1
+        val = unpack('>H', self._recv(pack('>bb', Cmd.READEEPROM, ee_address), 2))
+        if val:
+            return (1, val[0])
         return (0, 0)
 
     def write_eeprom(self, ee_address, ee_word):
         """Get Priority Levels.
         """
         # :Sends: [Address, 253, Address(byte), Value(2 bytes)]
-        retval = self._send(pack('>bbbb', Cmd.WRITEEEPROM, ee_address, ee_word >> 8, ee_word & 0xFF))
-        if retval:
-            trys = self._retries
-            while trys:
-                self._port.flushInput()
-                val1 = self._readbyte()
-                if val1[0]:
-                    if val1[1] == 0xaa:
-                        return True
-                trys -= 1
+        val = unpack('>b', self._recv(pack('>bbH', Cmd.WRITEEEPROM, ee_address, ee_word), 1, crc=0))
+        if val[1] == 0xaa:
+            return True
         return False
