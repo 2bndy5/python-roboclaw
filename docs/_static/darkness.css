@@ -181,6 +181,24 @@ body {
  background:#242424;
 }
 
+@media screen and (max-width: 480px) {
+  .wy-body-for-nav {
+   background:#242424
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .wy-body-for-nav {
+   background:#242424
+  }
+}
+
+@media screen and (min-width: 1100px) {
+  .wy-nav-content-wrap {
+   background:#242424;
+  }
+}
+
 /* -------------------------------------sidebar sections------------------------------------------------ */
 .wy-side-nav-search {
  background-color:#006B09;
@@ -222,7 +240,11 @@ body {
 }
 
 .wy-nav-top {
- background:#006B09;
+  /* position:fixed;
+  width: 100%;
+  top: 0;
+  z-index: 1; */
+  background:#006B09;
 }
 
 .wy-menu-vertical li.on a span.toctree-expand, .wy-menu-vertical li.current > a span.toctree-expand {
@@ -250,7 +272,7 @@ body {
 .wy-menu-vertical li.toctree-l2.current>a {
   background:#242424;
 }
- 
+
 /* -----------------------------------------API sections-------------------------------------- */
 .rst-content dl:not(.docutils) dl dt {
   background: #343434;
