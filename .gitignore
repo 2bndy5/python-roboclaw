@@ -124,3 +124,6 @@ dmypy.json
 
 # VSCode folder
 .vscode
+
+# BasicMicro docs
+docs/BasicMicro

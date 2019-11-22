@@ -34,9 +34,12 @@ extensions = [
     'sphinx.ext.viewcode',
 ]
 
+autodoc_mock_imports = ["serial"]
 autodoc_member_order = 'bysource'
 
-intersphinx_mapping = {'python': ('https://docs.python.org/3.4', None),'pySerial': ('http://pyserial.readthedocs.io/en/latest/', None)}
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3.4', None),
+    'pySerial': ('http://pyserial.readthedocs.io/en/latest/', None)}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -46,6 +49,25 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
+# The reST default role (used for this markup: `text`) to use for all
+# documents.
+#
+default_role = "any"
+
+# If true, '()' will be appended to :func: etc. cross-reference text.
+#
+add_function_parentheses = True
+
+# The name of the Pygments (syntax highlighting) style to use.
+pygments_style = 'sphinx'
+
+# If true, `todo` and `todoList` produce output, else they produce nothing.
+todo_include_todos = False
+
+# If this is True, todo emits a warning for each TODO entries. The default is False.
+todo_emit_warnings = False
+
+napoleon_numpy_docstring = False
 
 # -- Options for HTML output -------------------------------------------------
 
