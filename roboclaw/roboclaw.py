@@ -51,8 +51,8 @@ class Roboclaw:
         if self.packet_serial:
             crc = crc16(buf)
             buf += bytes([crc >> 8, crc & 0xff])
-        while trys:
-            with self._port as ser:
+        with self._port as ser:
+            while trys:
                 ser.write(buf)
                 if ack is None: # expects blanket ack
                     if unpack('>B', ser.read(1))[0] == 0xff:
@@ -61,7 +61,7 @@ class Roboclaw:
                     return ser.readline() # special case ack terminated w/ '\n' char
                 else: # for passing ack to _recv()
                     return ser.read(ack + (2 if self.packet_serial and crc else 0))
-            trys -= 1
+                trys -= 1
         return False
 
     # User accessible functions
