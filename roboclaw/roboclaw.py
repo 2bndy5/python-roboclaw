@@ -7,6 +7,12 @@ from .data_manip import crc16, validate
 
 # pylint: disable=line-too-long,invalid-name,too-many-function-args,too-many-public-methods
 
+# this function doesn't need a self pointer
+def _recv(buf):
+    if validate(buf):
+        return buf[:-2]
+    return False
+
 class Roboclaw:
     """A driver class for the RoboClaw Motor Controller device.
 
@@ -41,26 +47,21 @@ class Roboclaw:
         """
         trys = self._retries
         assert address is None or address in range(0x80, 0x88)
+        buf = (self._address if address is None else bytes([address])) + buf
+        if self.packet_serial:
+            crc = crc16(buf)
+            buf += bytes([crc >> 8, crc & 0xff])
         while trys:
-            buf = (self._address if address is None else bytes([address])) + buf
-            if self.packet_serial:
-                buf += pack('>H', crc16(buf))
             with self._port as ser:
                 ser.write(buf)
-                if ack is None:
-                    ack = ser.read(1) # expects blanket ack
-                    if unpack('>B', ack) == b'\xff':
+                if ack is None: # expects blanket ack
+                    if unpack('>B', ser.read(1))[0] == 0xff:
                         return True
                 elif not ack:
                     return ser.readline() # special case ack terminated w/ '\n' char
-                else: # for passing ack to self._recv()
+                else: # for passing ack to _recv()
                     return ser.read(ack + (2 if self.packet_serial and crc else 0))
             trys -= 1
-        return False
-
-    def _recv(self, buf):
-        if validate(buf):
-            return buf[:-2]
         return False
 
     # User accessible functions
@@ -205,7 +206,7 @@ class Roboclaw:
         * Bit2 - Counter Overflow (1= Underflow Occurred, Clear After Reading)
         * Bit3 through Bit7 - Reserved
         """
-        return unpack('>iB', self._recv(self._send(pack('>B', Cmd.GETM1ENC), address=address, ack=5)))
+        return unpack('>iB', _recv(self._send(pack('>B', Cmd.GETM1ENC), address=address, ack=5)))
 
     def read_encoder_m2(self, address=None):
         """ Read M2 encoder count/position.
@@ -222,7 +223,7 @@ class Roboclaw:
         * Bit3 through Bit7 - Reserved
 
         """
-        return unpack('>IB', self._recv(self._send(pack('>B', Cmd.GETM2ENC), address=address, ack=5)))
+        return unpack('>IB', _recv(self._send(pack('>B', Cmd.GETM2ENC), address=address, ack=5)))
 
     def read_speed_m1(self, address=None):
         """Read M1 counter speed. Returned value is in pulses per second. MCP keeps track of how many pulses received per second for both encoder channels.
@@ -231,7 +232,7 @@ class Roboclaw:
 
         Status indicates the direction (0 – forward, 1 - backward).
         """
-        return unpack('>IB', self._recv(self._send(pack('>B', Cmd.GETM1SPEED), address=address, ack=5)))
+        return unpack('>IB', _recv(self._send(pack('>B', Cmd.GETM1SPEED), address=address, ack=5)))
 
     def read_speed_m2(self, address=None):
         """Read M2 counter speed. Returned value is in pulses per second. MCP keeps track of how many pulses received per second for both encoder channels.
@@ -240,7 +241,7 @@ class Roboclaw:
 
         Status indicates the direction (0 – forward, 1 - backward).
         """
-        return unpack('>IB', self._recv(self._send(pack('>B', Cmd.GETM2SPEED), address=address, ack=5)))
+        return unpack('>IB', _recv(self._send(pack('>B', Cmd.GETM2SPEED), address=address, ack=5)))
 
     def reset_encoders(self, address=None):
         """Will reset both quadrature decoder counters to zero. This command applies to quadrature encoders only."""
@@ -253,7 +254,7 @@ class Roboclaw:
 
         The command will return up to 48 bytes. The return string includes the product name and firmware version. The return string is terminated with a line feed (10) and null (0) character.
         """
-        version = self._recv(self._send(pack('>B', Cmd.GETVERSION), address=address, ack=0))
+        version = _recv(self._send(pack('>B', Cmd.GETVERSION), address=address, ack=0))
         if version:
             return ''.join(chr(c) for c in version[:-2])
         return 'Unknown. Read command failed'
@@ -272,14 +273,14 @@ class Roboclaw:
         :Returns: The voltage is returned in 10ths of a volt (eg 30.0).
         """
         # :Returns: [Value(2 bytes)]The voltage is returned in 10ths of a volt(eg 300 = 30v).
-        return unpack('>h', self._recv(self._send(pack('>B', Cmd.GETMBATT), address=address, ack=2)))[0] / 10
+        return unpack('>h', _recv(self._send(pack('>B', Cmd.GETMBATT), address=address, ack=2)))[0] / 10
 
     def read_logic_battery_voltage(self, address=None):
         """Read a logic battery voltage level connected to LB+ and LB- terminals. The voltage is returned in 10ths of a volt(eg 50 = 5v).
 
         :Returns: [Value.Byte1, Value.Byte0]
         """
-        data = unpack('>BB', self._recv(self._send(pack('>B', Cmd.GETLBATT), address=address, ack=2)))
+        data = unpack('>BB', _recv(self._send(pack('>B', Cmd.GETLBATT), address=address, ack=2)))
         if data:
             return data
         return (0, 0)
@@ -342,7 +343,7 @@ class Roboclaw:
 
         The Status byte is direction (0 – forward, 1 - backward).
         """
-        return unpack('>Ib', self._recv(self._send(pack('>B', Cmd.GETM1ISPEED), address=address, ack=5)))
+        return unpack('>Ib', _recv(self._send(pack('>B', Cmd.GETM1ISPEED), address=address, ack=5)))
 
     def read_raw_speed_m2(self, address=None):
         """Read the pulses counted in that last 300th of a second. This is an unfiltered version of `read_speed_m2()`. This function can be used to make a independent PID routine. Value returned is in encoder counts per second.
@@ -351,7 +352,7 @@ class Roboclaw:
 
         The Status byte is direction (0 – forward, 1 - backward).
         """
-        return unpack('>Ib', self._recv(self._send(pack('>B', Cmd.GETM2ISPEED), address=address, ack=5)))
+        return unpack('>Ib', _recv(self._send(pack('>B', Cmd.GETM2ISPEED), address=address, ack=5)))
 
     def duty_m1(self, val, address=None):
         """Drive M1 using a duty cycle value. The duty cycle is used to control the speed of the motor without a quadrature encoder.
@@ -482,7 +483,7 @@ class Roboclaw:
 
         The return values represent how many commands per buffer are waiting to be executed. The maximum buffer size per motor is 64 commands(0x3F). A return value of 0x80(128) indicates the buffer is empty. A return value of 0 indiciates the last command sent is executing. A value of 0x80 indicates the last command buffered has finished.
         """
-        val = unpack('>BB', self._recv(self._send(pack('>B', Cmd.GETBUFFERS), address=address, ack=2)))
+        val = unpack('>BB', _recv(self._send(pack('>B', Cmd.GETBUFFERS), address=address, ack=2)))
         if val:
             return (1, val[0], val[1])
         return (0, 0, 0)
@@ -493,7 +494,7 @@ class Roboclaw:
         :Returns: [M1 PWM(2 bytes), M2 PWM(2 bytes)]
         """
         # Send: [Address, 48]
-        val = unpack('>hh', self._recv(self._send(pack('>B', Cmd.GETPWMS), address=address, ack=4)))
+        val = unpack('>hh', _recv(self._send(pack('>B', Cmd.GETPWMS), address=address, ack=4)))
         if val:
             return (1, val[0], val[1])
         return (0, 0, 0)
@@ -504,7 +505,7 @@ class Roboclaw:
         :Returns: [M1 Current(2 bytes), M2 Currrent(2 bytes)]
         """
         # Send: [Address, 49]
-        val = unpack('>hh', self._recv(self._send(pack('>B', Cmd.GETCURRENTS), address=address, ack=4)))
+        val = unpack('>hh', _recv(self._send(pack('>B', Cmd.GETCURRENTS), address=address, ack=4)))
         if val:
             return (1, val[0], val[1])
         return (0, 0, 0)
@@ -555,7 +556,7 @@ class Roboclaw:
         :Returns: [P(4 bytes), I(4 bytes), D(4 bytes), QPPS(4 byte)]
         """
         # :Sends: [Address, 55]
-        data = unpack('iiii', self._recv(self._send(pack('>B', Cmd.READM1PID), address=address, ack=16)))
+        data = unpack('iiii', _recv(self._send(pack('>B', Cmd.READM1PID), address=address, ack=16)))
         if data:
             return (data[0], data[1] / 65536.0, data[2] / 65536.0, data[3] / 65536.0)
         return (0, 0, 0, 0)
@@ -566,7 +567,7 @@ class Roboclaw:
         :Returns: [P(4 bytes), I(4 bytes), D(4 bytes), QPPS(4 byte)]
         """
         # :Sends: [Address, 55]
-        data = unpack('iiii', self._recv(self._send(pack('>B', Cmd.READM2PID), address=address, ack=16)))
+        data = unpack('iiii', _recv(self._send(pack('>B', Cmd.READM2PID), address=address, ack=16)))
         if data:
             return (data[0], data[1] / 65536.0, data[2] / 65536.0, data[3] / 65536.0)
         return (0, 0, 0, 0)
@@ -586,7 +587,7 @@ class Roboclaw:
 
         :Returns: [Min(2 bytes), Max(2 bytes)]
         """
-        val = unpack('>HH', self._recv(self._send(pack('>B', Cmd.GETMINMAXMAINVOLTAGES), address=address, ack=4)))
+        val = unpack('>HH', _recv(self._send(pack('>B', Cmd.GETMINMAXMAINVOLTAGES), address=address, ack=4)))
         if val:
             return (1, val[0], val[1])
         return (0, 0, 0)
@@ -596,7 +597,7 @@ class Roboclaw:
 
         :Returns: [Min(2 bytes), Max(2 bytes)]
         """
-        val = unpack('>HH', self._recv(self._send(pack('>B', Cmd.GETMINMAXLOGICVOLTAGES), address=address, ack=4)))
+        val = unpack('>HH', _recv(self._send(pack('>B', Cmd.GETMINMAXLOGICVOLTAGES), address=address, ack=4)))
         if val:
             return (1, val[0], val[1])
         return (0, 0, 0)
@@ -622,7 +623,7 @@ class Roboclaw:
 
         :Returns: [P(4 bytes), I(4 bytes), D(4 bytes), MaxI(4 byte), Deadzone(4 byte), MinPos(4 byte), MaxPos(4 byte)]
         """
-        data = unpack('>IIIIIII', self._recv(self._send(pack('>B', Cmd.READM1POSPID), address=address, ack=28)))
+        data = unpack('>IIIIIII', _recv(self._send(pack('>B', Cmd.READM1POSPID), address=address, ack=28)))
         if data:
             return (data[0], data[1] / 1024.0, data[2] / 1024.0, data[3] / 1024.0)
         return (0, 0, 0, 0, 0, 0, 0)
@@ -632,7 +633,7 @@ class Roboclaw:
 
         :Returns: [P(4 bytes), I(4 bytes), D(4 bytes), MaxI(4 byte), Deadzone(4 byte), MinPos(4 byte), MaxPos(4 byte)]
         """
-        data = unpack('>IIIIIII', self._recv(self._send(pack('>B', Cmd.READM2POSPID), address=address, ack=28)))
+        data = unpack('>IIIIIII', _recv(self._send(pack('>B', Cmd.READM2POSPID), address=address, ack=28)))
         if data:
             return (1, data[0] / 1024.0, data[1] / 1024.0, data[2] / 1024.0)
         return (0, 0, 0, 0, 0, 0, 0)
@@ -698,7 +699,7 @@ class Roboclaw:
         :Returns: [S3mode, S4mode, S5mode]
         """
         # :Sends: [Address, 75]
-        val = unpack('>BBB', self._recv(self._send(pack('>B', Cmd.GETPINFUNCTIONS), address=address, ack=3)))
+        val = unpack('>BBB', _recv(self._send(pack('>B', Cmd.GETPINFUNCTIONS), address=address, ack=3)))
         if val:
             return (1, val[0], val[1], val[2])
         return (0, 0, 0)
@@ -716,7 +717,7 @@ class Roboclaw:
         :Returns: [Reverse, SForward]
         """
         # :Sends: [Address, 77]
-        val = unpack('>BB', self._recv(self._send(pack('>B', Cmd.GETDEADBAND), address=address, ack=2)))
+        val = unpack('>BB', _recv(self._send(pack('>B', Cmd.GETDEADBAND), address=address, ack=2)))
         if val:
             return (1, val[0], val[1])
         return (0, 0, 0)
@@ -735,14 +736,14 @@ class Roboclaw:
 
         :Returns: [Temperature(2 bytes)]
         """
-        return unpack('>h', self._recv(self._send(pack('>B', Cmd.GETTEMP), address=address, ack=2)))
+        return unpack('>h', _recv(self._send(pack('>B', Cmd.GETTEMP), address=address, ack=2)))
 
     def read_temp2(self, address=None):
         """Read the second board temperature(only on supported units). Value returned is in 10ths of degrees.
 
         :Returns: [Temperature(2 bytes)]
         """
-        return unpack('>h', self._recv(self._send(pack('>B', Cmd.GETTEMP2), address=address, ack=2)))
+        return unpack('>h', _recv(self._send(pack('>B', Cmd.GETTEMP2), address=address, ack=2)))
 
     def read_error(self, address=None):
         """Read the current unit status.
@@ -767,14 +768,14 @@ class Roboclaw:
         Temperature2 Warning      0x2000
         ========================= ===============
         """
-        return unpack('>B', self._recv(self._send(pack('>B', Cmd.GETERROR), address=address, ack=1)))
+        return unpack('>B', _recv(self._send(pack('>B', Cmd.GETERROR), address=address, ack=1)))
 
     def read_encoder_modes(self, address=None):
         """Read the encoder pins assigned for both motors.
 
         :Returns: [Enc1Mode, Enc2Mode]
         """
-        val = unpack('>BB', self._recv(self._send(pack('>B', Cmd.GETENCODERMODE), address=address, ack=2)))
+        val = unpack('>BB', _recv(self._send(pack('>B', Cmd.GETENCODERMODE), address=address, ack=2)))
         if val:
             return (1, val[0], val[1])
         return (0, 0, 0)
@@ -804,7 +805,7 @@ class Roboclaw:
             If baudrate changes or the control mode changes communications will be lost.
         """
         # :Sends: [Address, 95]
-        return unpack('>BB', self._recv(self._send(pack('>B', Cmd.READNVM), address=address, ack=2)))
+        return unpack('>BB', _recv(self._send(pack('>B', Cmd.READNVM), address=address, ack=2)))
 
     def set_config(self, config, address=None):
         """Set config bits for standard settings.
@@ -865,7 +866,7 @@ class Roboclaw:
         :Returns: [Config(2 bytes)]
         """
         # :Sends: [Address, 99]
-        return unpack('>h', self._recv(self._send(pack('>B', Cmd.GETCONFIG), address=address, ack=2)))
+        return unpack('>h', _recv(self._send(pack('>B', Cmd.GETCONFIG), address=address, ack=2)))
 
     def set_m1_max_current(self, maximum, address=None):
         """Set Motor 1 Maximum Current Limit. Current value is in 10ma units. To calculate multiply current limit by 100.
@@ -884,7 +885,7 @@ class Roboclaw:
 
         :Returns: [MaxCurrent(4 bytes), MinCurrent(4 bytes)]
         """
-        data = unpack('>II', self._recv(self._send(pack('>B', Cmd.GETM1MAXCURRENT), address=address, ack=8)))
+        data = unpack('>II', _recv(self._send(pack('>B', Cmd.GETM1MAXCURRENT), address=address, ack=8)))
         if data:
             return data
         return (0, 0)
@@ -894,7 +895,7 @@ class Roboclaw:
 
         :Returns: [MaxCurrent(4 bytes), MinCurrent(4 bytes)]
         """
-        data = unpack('>II', self._recv(self._send(pack('>B', Cmd.GETM2MAXCURRENT), address=address, ack=8)))
+        data = unpack('>II', _recv(self._send(pack('>B', Cmd.GETM2MAXCURRENT), address=address, ack=8)))
         if data[0]:
             return data
         return (0, 0)
@@ -910,7 +911,7 @@ class Roboclaw:
 
         :Returns: [PWMMode]
         """
-        return unpack('>B', self._recv(self._send(pack('>B', Cmd.GETPWMMODE), address=address, ack=1)))
+        return unpack('>B', _recv(self._send(pack('>B', Cmd.GETPWMMODE), address=address, ack=1)))
 
     def read_eeprom(self, ee_address, address=None):
         """Read a value from the User EEProm memory(256 bytes).
@@ -918,7 +919,7 @@ class Roboclaw:
         :Returns: [Value(2 bytes)]
         """
         # :Sends: [Address, 252, EEProm Address(byte)]
-        val = unpack('>H', self._recv(self._send(pack('>BB', Cmd.READEEPROM, ee_address), address=address, ack=2)))
+        val = unpack('>H', _recv(self._send(pack('>BB', Cmd.READEEPROM, ee_address), address=address, ack=2)))
         if val:
             return (1, val[0])
         return (0, 0)
@@ -927,7 +928,7 @@ class Roboclaw:
         """Get Priority Levels.
         """
         # :Sends: [Address, 253, Address(byte), Value(2 bytes)]
-        val = unpack('>B', self._recv(self._send(pack('>BBH', Cmd.WRITEEEPROM, ee_address, ee_word), address=address, ack=1, crc=0)))
+        val = unpack('>B', _recv(self._send(pack('>BBH', Cmd.WRITEEEPROM, ee_address, ee_word), address=address, ack=1, crc=0)))
         if val[1] == 0xaa:
             return True
         return False
