@@ -48,11 +48,13 @@ class Roboclaw:
             with self._port as ser:
                 ser.write(buf)
                 if ack is None:
-                    ack = ser.read(1)
+                    ack = ser.read(1) # expects blanket ack
                     if unpack('b', ack) == b'\xff':
                         return True
-                else:
-                    ack = ser.read(ack + (2 if self.packet_serial and crc else 0))
+                elif not ack:
+                    return ser.readline() # special case ack terminated w/ '\n' char
+                else: # for passing ack to self._recv()
+                    return ser.read(ack + (2 if self.packet_serial and crc else 0))
             trys -= 1
         return False
 
