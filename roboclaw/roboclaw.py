@@ -44,12 +44,12 @@ class Roboclaw:
         while trys:
             buf = (self._address if address is None else bytes([address])) + buf
             if self.packet_serial:
-                buf += pack('h', crc16(buf))
+                buf += pack('>H', crc16(buf))
             with self._port as ser:
                 ser.write(buf)
                 if ack is None:
                     ack = ser.read(1) # expects blanket ack
-                    if unpack('b', ack) == b'\xff':
+                    if unpack('>B', ack) == b'\xff':
                         return True
                 elif not ack:
                     return ser.readline() # special case ack terminated w/ '\n' char
