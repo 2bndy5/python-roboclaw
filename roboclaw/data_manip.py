@@ -1,6 +1,7 @@
 """A module for manipulating dat including generating CRC values and datatype constraints."""
 import struct
 
+# For more information on how CRC algorithms work: https://www.zlib.net/crc_v3.txt
 def crc16(data):
     """Calculates CRC16 of data in bytearray."""
     crc = 0x0000
@@ -18,5 +19,5 @@ def crc16(data):
 def validate(message):
     """validates a received message by comparing the calculated checksum with the checksum
     included in the message"""
-    # print(struct.unpack('h', message[-2:])[0], '==', crc16(message[:-2]))
-    return struct.unpack('h', message[-2:])[0] == crc16(message[:-2])
+    print(hex(struct.unpack('>H', message[-2:])[0]), '==', crc16(message[:-2]))
+    return struct.unpack('>H', message[-2:])[0] == crc16(message[:-2])

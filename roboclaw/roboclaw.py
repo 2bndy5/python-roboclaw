@@ -70,7 +70,7 @@ class Roboclaw:
         :param int cnt: the number of bytes to randomly generate."""
         buf = b''
         for _ in range(cnt):
-            buf += pack('>b', os.urandom(1))
+            buf += pack('>B', os.urandom(1))
         self._send(buf, address=address)
 
     def forward_m1(self, val, address=None):
@@ -79,7 +79,7 @@ class Roboclaw:
         :param int val: Valid data range is 0 - 127. A value of 127 = full speed forward, 64 = about half speed forward and 0 = full stop.
         """
         # :Sends: [Address, 0, Value]
-        return self._send(pack('>bb', Cmd.M1FORWARD, val), address=address)
+        return self._send(pack('>BB', Cmd.M1FORWARD, val), address=address)
 
     def backward_m1(self, val, address=None):
         """Drive motor 1 backwards.
@@ -87,7 +87,7 @@ class Roboclaw:
         :param int val: Valid data range is 0 - 127. A value of 127 full speed backwards, 64 = about half speed backward and 0 = full stop.
         """
         # :Sends: [Address, 1, Value]
-        return self._send(pack('>bb', Cmd.M1BACKWARD, val), address=address)
+        return self._send(pack('>BB', Cmd.M1BACKWARD, val), address=address)
 
     def set_min_voltage_main_battery(self, val, address=None):
         """Sets main battery (B- / B+) minimum voltage level. If the battery voltages drops below the set voltage level, RoboClaw will stop driving the motors. The voltage is set in .2 volt increments. The minimum value allowed which is 6V.
@@ -98,7 +98,7 @@ class Roboclaw:
         # translated byte value range = [0, 140]
         # The formula for calculating the voltage is: (Desired Volts - 6) x 5 = Value.
         # Examples of valid values are 6V = 0, 8V = 10 and 11V = 25.
-        return self._send(pack('>bb', Cmd.SETMINMB, int(val / 5 + 6)), address=address)
+        return self._send(pack('>BB', Cmd.SETMINMB, int(val / 5 + 6)), address=address)
 
     def set_max_voltage_main_battery(self, val, address=None):
         """Sets main battery (B- / B+) maximum voltage level. During regenerative breaking a back voltage is applied to charge the battery. When using a power supply, by setting the maximum voltage level, RoboClaw will, before exceeding it, go into hard braking mode until the voltage drops below the maximum value set. This will prevent overvoltage conditions when using power supplies.
@@ -109,7 +109,7 @@ class Roboclaw:
         # translated byte value range = [30, 175]
         # The formula for calculating the voltage is: Desired Volts x 5.12 = Value.
         # Examples of valid values are 12V = 62, 16V = 82 and 24V = 123.
-        return self._send(pack('>bb', Cmd.SETMAXMB, int(val / 5.12)), address=address)
+        return self._send(pack('>BB', Cmd.SETMAXMB, int(val / 5.12)), address=address)
 
     def forward_m2(self, val, address=None):
         """Drive motor 2 forward.
@@ -117,7 +117,7 @@ class Roboclaw:
         :param int val: Valid data range is [0, 127]. A value of 127 full speed forward, 64 = about half speed forward and 0 = full stop.
         """
         # :Sends: [Address, 4, Value]
-        return self._send(pack('>bb', Cmd.M2FORWARD, val), address=address)
+        return self._send(pack('>BB', Cmd.M2FORWARD, val), address=address)
 
     def backward_m2(self, val, address=None):
         """Drive motor 2 backwards.
@@ -125,7 +125,7 @@ class Roboclaw:
         :param int val: Valid data range is [0, 127]. A value of 127 full speed backwards, 64 = about half speed backward and 0 = full stop.
         """
         # :Sends: [Address, 5, Value]
-        return self._send(pack('>bb', Cmd.M2BACKWARD, val), address=address)
+        return self._send(pack('>BB', Cmd.M2BACKWARD, val), address=address)
 
     def forward_backward_m1(self, val, address=None):
         """Drive motor 1 forward or reverse.
@@ -133,7 +133,7 @@ class Roboclaw:
         :param int val: Valid data range is [0, 127]. A value of 0 = full speed reverse, 64 = stop and 127 = full speed forward.
         """
         # :Sends: [Address, 6, Value]
-        return self._send(pack('>bb', Cmd.M17BIT, val), address=address)
+        return self._send(pack('>BB', Cmd.M17BIT, val), address=address)
 
     def forward_backward_m2(self, val, address=None):
         """Drive motor 2 forward or reverse.
@@ -141,7 +141,7 @@ class Roboclaw:
         :param int val: Valid data range is [0, 127]. A value of 0 = full speed reverse, 64 = stop and 127 = full speed forward.
         """
         # :Sends: [Address, 7, Value]
-        return self._send(pack('>bb', Cmd.M27BIT, val), address=address)
+        return self._send(pack('>BB', Cmd.M27BIT, val), address=address)
 
     def forward_mixed(self, val, address=None):
         """Drive forward in mix mode.
@@ -149,7 +149,7 @@ class Roboclaw:
         :param int val: Valid data range is [0, 127]. A value of 0 = full stop and 127 = full forward.
         """
         # :Sends: [Address, 8, Value]
-        return self._send(pack('>bb', Cmd.MIXEDFORWARD, val), address=address)
+        return self._send(pack('>BB', Cmd.MIXEDFORWARD, val), address=address)
 
     def backward_mixed(self, val, address=None):
         """Drive backwards in mix mode.
@@ -157,7 +157,7 @@ class Roboclaw:
         :param int val: Valid data range is [0, 127]. A value of 0 = full stop and 127 = full reverse.
         """
         # :Sends: [Address, 9, Value]
-        return self._send(pack('>bb', Cmd.MIXEDBACKWARD, val), address=address)
+        return self._send(pack('>BB', Cmd.MIXEDBACKWARD, val), address=address)
 
     def turn_right_mixed(self, val, address=None):
         """Turn right in mix mode.
@@ -165,7 +165,7 @@ class Roboclaw:
         :param int val: Valid data range is [0, 127]. A value of 0 = stop turn and 127 = full speed turn.
         """
         # :Sends: [Address, 10, Value]
-        return self._send(pack('>bb', Cmd.MIXEDRIGHT, val), address=address)
+        return self._send(pack('>BB', Cmd.MIXEDRIGHT, val), address=address)
 
     def turn_left_mixed(self, val, address=None):
         """Turn left in mix mode.
@@ -173,7 +173,7 @@ class Roboclaw:
         :param int val: Valid data range is [0, 127]. A value of 0 = stop turn and 127 = full speed turn.
         """
         # :Sends: [Address, 11, Value]
-        return self._send(pack('>bb', Cmd.MIXEDLEFT, val), address=address)
+        return self._send(pack('>BB', Cmd.MIXEDLEFT, val), address=address)
 
     def forward_backward_mixed(self, val, address=None):
         """Drive forward or backwards.
@@ -181,7 +181,7 @@ class Roboclaw:
         :param int val: Valid data range is [0, 127]. A value of 0 = full backward, 64 = stop and 127 = full forward.
         """
         # :Sends: [Address, 12, Value]
-        return self._send(pack('>bb', Cmd.MIXEDFB, val), address=address)
+        return self._send(pack('>BB', Cmd.MIXEDFB, val), address=address)
 
     def left_right_mixed(self, val, address=None):
         """Turn left or right.
@@ -189,7 +189,7 @@ class Roboclaw:
         :param int val: Valid data range is [0, 127]. A value of 0 = full left, 64 = stop turn and 127 = full right.
         """
         # :Sends: [Address, 13, Value]
-        return self._send(pack('>bb', Cmd.MIXEDLR, val), address=address)
+        return self._send(pack('>BB', Cmd.MIXEDLR, val), address=address)
 
     def read_encoder_m1(self, address=None):
         """Read M1 encoder count/position.
@@ -205,7 +205,7 @@ class Roboclaw:
         * Bit2 - Counter Overflow (1= Underflow Occurred, Clear After Reading)
         * Bit3 through Bit7 - Reserved
         """
-        return unpack('>ib', self._recv(self._send(pack('>b', Cmd.GETM1ENC), address=address, ack=5)))
+        return unpack('>iB', self._recv(self._send(pack('>B', Cmd.GETM1ENC), address=address, ack=5)))
 
     def read_encoder_m2(self, address=None):
         """ Read M2 encoder count/position.
@@ -222,7 +222,7 @@ class Roboclaw:
         * Bit3 through Bit7 - Reserved
 
         """
-        return unpack('>Ib', self._recv(self._send(pack('>b', Cmd.GETM2ENC), address=address, ack=5)))
+        return unpack('>IB', self._recv(self._send(pack('>B', Cmd.GETM2ENC), address=address, ack=5)))
 
     def read_speed_m1(self, address=None):
         """Read M1 counter speed. Returned value is in pulses per second. MCP keeps track of how many pulses received per second for both encoder channels.
@@ -231,7 +231,7 @@ class Roboclaw:
 
         Status indicates the direction (0 – forward, 1 - backward).
         """
-        return unpack('>Ib', self._recv(self._send(pack('>b', Cmd.GETM1SPEED), address=address, ack=5)))
+        return unpack('>IB', self._recv(self._send(pack('>B', Cmd.GETM1SPEED), address=address, ack=5)))
 
     def read_speed_m2(self, address=None):
         """Read M2 counter speed. Returned value is in pulses per second. MCP keeps track of how many pulses received per second for both encoder channels.
@@ -240,11 +240,11 @@ class Roboclaw:
 
         Status indicates the direction (0 – forward, 1 - backward).
         """
-        return unpack('>Ib', self._recv(self._send(pack('>b', Cmd.GETM2SPEED), address=address, ack=5)))
+        return unpack('>IB', self._recv(self._send(pack('>B', Cmd.GETM2SPEED), address=address, ack=5)))
 
     def reset_encoders(self, address=None):
         """Will reset both quadrature decoder counters to zero. This command applies to quadrature encoders only."""
-        return self._send(pack('>b', Cmd.RESETENC), address=address)
+        return self._send(pack('>B', Cmd.RESETENC), address=address)
 
     def read_version(self, address=None):
         """Read RoboClaw firmware version. Returns up to 48 bytes(depending on the Roboclaw model) and is terminated by a line feed character and a null character.
@@ -253,18 +253,18 @@ class Roboclaw:
 
         The command will return up to 48 bytes. The return string includes the product name and firmware version. The return string is terminated with a line feed (10) and null (0) character.
         """
-        version = self._recv(self._send(pack('>b', Cmd.GETVERSION), address=address, ack=0))
+        version = self._recv(self._send(pack('>B', Cmd.GETVERSION), address=address, ack=0))
         if version:
             return ''.join(chr(c) for c in version[:-2])
         return 'Unknown. Read command failed'
 
     def set_enc_m1(self, cnt, address=None):
         """Set the value of the Encoder 1 register. Useful when homing motor 1. This command applies to quadrature encoders only."""
-        return self._send(pack('>bI', Cmd.SETM1ENCCOUNT, cnt), address=address)
+        return self._send(pack('>BI', Cmd.SETM1ENCCOUNT, cnt), address=address)
 
     def set_enc_m2(self, cnt, address=None):
         """Set the value of the Encoder 2 register. Useful when homing motor 2. This command applies to quadrature encoders only."""
-        return self._send(pack('>bI', Cmd.SETM2ENCCOUNT, cnt), address=address)
+        return self._send(pack('>BI', Cmd.SETM2ENCCOUNT, cnt), address=address)
 
     def read_main_battery_voltage(self, address=None):
         """Read the main battery voltage level connected to B+ and B- terminals.
@@ -272,14 +272,14 @@ class Roboclaw:
         :Returns: The voltage is returned in 10ths of a volt (eg 30.0).
         """
         # :Returns: [Value(2 bytes)]The voltage is returned in 10ths of a volt(eg 300 = 30v).
-        return unpack('>h', self._recv(self._send(pack('>b', Cmd.GETMBATT), address=address, ack=2)))[0] / 10
+        return unpack('>h', self._recv(self._send(pack('>B', Cmd.GETMBATT), address=address, ack=2)))[0] / 10
 
     def read_logic_battery_voltage(self, address=None):
         """Read a logic battery voltage level connected to LB+ and LB- terminals. The voltage is returned in 10ths of a volt(eg 50 = 5v).
 
         :Returns: [Value.Byte1, Value.Byte0]
         """
-        data = unpack('>bb', self._recv(self._send(pack('>b', Cmd.GETLBATT), address=address, ack=2)))
+        data = unpack('>BB', self._recv(self._send(pack('>B', Cmd.GETLBATT), address=address, ack=2)))
         if data:
             return data
         return (0, 0)
@@ -295,7 +295,7 @@ class Roboclaw:
         # translated byte value range = [0, 140]
         # The formula for calculating the voltage is: (Desired Volts - 6) x 5 = Value.
         # Examples of valid values are 6V = 0, 8V = 10 and 11V = 25.
-        return self._send(pack('>bb', Cmd.SETMINLB, int(val / 5 + 6), address=address))
+        return self._send(pack('>BB', Cmd.SETMINLB, int(val / 5 + 6), address=address))
 
     def set_max_voltage_logic_battery(self, val, address=None):
         """Sets logic input (LB- / LB+) maximum voltage level. RoboClaw will shutdown with an error if the voltage is above this level.
@@ -307,7 +307,7 @@ class Roboclaw:
         # translated byte value ranges [30, 175]
         # The formula for calculating the voltage is: Desired Volts x 5.12 = Value.
         # Examples of valid values are 12V = 62, 16V = 82 and 24V = 123.
-        return self._send(pack('>bb', Cmd.SETMAXLB, int(val / 5.12), address=address))
+        return self._send(pack('>BB', Cmd.SETMAXLB, int(val / 5.12), address=address))
 
     def set_m1_velocity_pid(self, p, i, d, qpps, address=None):
         """Several motor and quadrature combinations can be used with RoboClaw. In some cases the default PID values will need to be tuned for the systems being driven. This gives greater flexibility in what motor and encoder combinations can be used. The RoboClaw PID system consist of four constants starting with QPPS, P = Proportional, I= Integral and D= Derivative.
@@ -320,7 +320,7 @@ class Roboclaw:
         QPPS is the speed of the encoder when the motor is at 100% power. P, I, D are the default values used after a reset.
         """
         # :Sends: [Address, 28, D(4 bytes), P(4 bytes), I(4 bytes), QPPS(4 byte)]
-        return self._send(pack('>bIIII', Cmd.SETM1PID, d * 65536, p * 65536, i * 65536, qpps), address=address)
+        return self._send(pack('>BIIII', Cmd.SETM1PID, d * 65536, p * 65536, i * 65536, qpps), address=address)
 
     def set_m2_velocity_pid(self, p, i, d, qpps, address=None):
         """Several motor and quadrature combinations can be used with RoboClaw. In some cases the default PID values will need to be tuned for the systems being driven. This gives greater flexibility in what motor and encoder combinations can be used. The RoboClaw PID system consist of four constants starting with QPPS, P = Proportional, I= Integral and D= Derivative.
@@ -333,7 +333,7 @@ class Roboclaw:
         QPPS is the speed of the encoder when the motor is at 100% power. P, I, D are the default values used after a reset.
         """
         # :Sends: [Address, 29, D(4 bytes), P(4 bytes), I(4 bytes), QPPS(4 byte)]
-        return self._send(pack('>bIIII', Cmd.SETM2PID, d * 65536, p * 65536, i * 65536, qpps), address=address)
+        return self._send(pack('>BIIII', Cmd.SETM2PID, d * 65536, p * 65536, i * 65536, qpps), address=address)
 
     def read_raw_speed_m1(self, address=None):
         """Read the pulses counted in that last 300th of a second. This is an unfiltered version of `read_speed_m1()`. This function can be used to make a independent PID routine. Value returned is in encoder counts per second.
@@ -342,7 +342,7 @@ class Roboclaw:
 
         The Status byte is direction (0 – forward, 1 - backward).
         """
-        return unpack('>Ib', self._recv(self._send(pack('>b', Cmd.GETM1ISPEED), address=address, ack=5)))
+        return unpack('>Ib', self._recv(self._send(pack('>B', Cmd.GETM1ISPEED), address=address, ack=5)))
 
     def read_raw_speed_m2(self, address=None):
         """Read the pulses counted in that last 300th of a second. This is an unfiltered version of `read_speed_m2()`. This function can be used to make a independent PID routine. Value returned is in encoder counts per second.
@@ -351,7 +351,7 @@ class Roboclaw:
 
         The Status byte is direction (0 – forward, 1 - backward).
         """
-        return unpack('>Ib', self._recv(self._send(pack('>b', Cmd.GETM2ISPEED), address=address, ack=5)))
+        return unpack('>Ib', self._recv(self._send(pack('>B', Cmd.GETM2ISPEED), address=address, ack=5)))
 
     def duty_m1(self, val, address=None):
         """Drive M1 using a duty cycle value. The duty cycle is used to control the speed of the motor without a quadrature encoder.
@@ -359,7 +359,7 @@ class Roboclaw:
         :param int val: The duty value is signed and the range [-32767, 32767] (eg. +-100% duty).
         """
         # :Sends: [Address, 32, Duty(2 Bytes)]
-        return self._send(pack('>bh', Cmd.M1DUTY, val), address=address)
+        return self._send(pack('>Bh', Cmd.M1DUTY, val), address=address)
 
     def duty_m2(self, val, address=None):
         """Drive M2 using a duty cycle value. The duty cycle is used to control the speed of the motor without a quadrature encoder.
@@ -367,7 +367,7 @@ class Roboclaw:
         :param int val: The duty value is signed and the range [-32767, 32767] (eg. +-100% duty).
         """
         # :Sends: [Address, 33, Duty(2 Bytes)]
-        return self._send(pack('>bh', Cmd.M2DUTY, val), address=address)
+        return self._send(pack('>Bh', Cmd.M2DUTY, val), address=address)
 
     def duty_m1_m2(self, m1, m2, address=None):
         """Drive both M1 and M2 using a duty cycle value. The duty cycle is used to control the speed of the motor without a quadrature encoder.
@@ -376,7 +376,7 @@ class Roboclaw:
         :param int m2: The duty value is signed and the range [-32767, 32767] (eg. +-100% duty).
         """
         # :Sends: [Address, 34, DutyM1(2 Bytes), DutyM2(2 Bytes)]
-        return self._send(pack('>bhh', Cmd.MIXEDDUTY, m1, m2), address=address)
+        return self._send(pack('>Bhh', Cmd.MIXEDDUTY, m1, m2), address=address)
 
     def speed_m1(self, val, address=None):
         """Drive M1 using a speed value. The sign indicates which direction the motor will turn. This command is used to drive the motor by quad pulses per second. Different quadrature encoders will have different rates at which they generate the incoming pulses. The values used will differ from one encoder to another. Once a value is sent the motor will begin to accelerate as fast as possible until the defined rate is reached.
@@ -384,7 +384,7 @@ class Roboclaw:
         :param int val: Valid input ranges [-2147483647, 2147483647].
         """
         # :Sends: [Address, 35, Speed(4 Bytes)]
-        return self._send(pack('>bi', Cmd.M1SPEED, val), address=address)
+        return self._send(pack('>Bi', Cmd.M1SPEED, val), address=address)
 
     def speed_m2(self, val, address=None):
         """Drive M2 with a speed value. The sign indicates which direction the motor will turn. This command is used to drive the motor by quad pulses per second. Different quadrature encoders will have different rates at which they generate the incoming pulses. The values used will differ from one encoder to another. Once a value is sent, the motor will begin to accelerate as fast as possible until the rate defined is reached.
@@ -392,7 +392,7 @@ class Roboclaw:
         :param int val: Valid input ranges [-2147483647, 2147483647].
         """
         # :Sends: [Address, 36, Speed(4 Bytes)]
-        return self._send(pack('>bi', Cmd.M2SPEED, val), address=address)
+        return self._send(pack('>Bi', Cmd.M2SPEED, val), address=address)
 
     def speed_m1_m2(self, m1, m2, address=None):
         """Drive M1 and M2 in the same command using a signed speed value. The sign indicates which direction the motor will turn. This command is used to drive the motor by quad pulses per second. Different quadrature encoders will have different rates at which they generate the incoming pulses. The values used will differ from one encoder to another. Once a value is sent the motor will begin to accelerate as fast as possible until the rate defined is reached.
@@ -401,7 +401,7 @@ class Roboclaw:
         :param int m2: Valid input ranges [-2147483647, 2147483647].
         """
         # :Sends: [Address, 37, SpeedM1(4 Bytes), SpeedM2(4 Bytes)]
-        return self._send(pack('>bii', Cmd.MIXEDSPEED, m1, m2), address=address)
+        return self._send(pack('>Bii', Cmd.MIXEDSPEED, m1, m2), address=address)
 
     def speed_accel_m1(self, accel, speed, address=None):
         """Drive M1 with a signed speed and acceleration value. The sign indicates which direction the motor will run. The acceleration values are not signed. This command is used to drive the motor by quad pulses per second and using an acceleration value for ramping. Different quadrature encoders will have different rates at which they generate the incoming pulses. The values used will differ from one encoder to another. Once a value is sent the motor will begin to accelerate incrementally until the rate defined is reached.
@@ -409,7 +409,7 @@ class Roboclaw:
         The acceleration is measured in speed increase per second. An acceleration value of 12,000 QPPS with a speed of 12,000 QPPS would accelerate a motor from 0 to 12,000 QPPS in 1 second. Another example would be an acceleration value of 24,000 QPPS and a speed value of 12,000 QPPS would accelerate the motor to 12,000 QPPS in 0.5 seconds.
         """
         # :Sends: [Address, 38, Accel(4 Bytes), Speed(4 Bytes)]
-        return self._send(pack('>bIi', Cmd.M1SPEEDACCEL, accel, speed), address=address)
+        return self._send(pack('>BIi', Cmd.M1SPEEDACCEL, accel, speed), address=address)
 
     def speed_accel_m2(self, accel, speed, address=None):
         """Drive M2 with a signed speed and acceleration value. The sign indicates which direction the motor will run. The acceleration value is not signed. This command is used to drive the motor by quad pulses per second and using an acceleration value for ramping. Different quadrature encoders will have different rates at which they generate the incoming pulses. The values used will differ from one encoder to another. Once a value is sent the motor will begin to accelerate incrementally until the rate defined is reached.
@@ -417,7 +417,7 @@ class Roboclaw:
         The acceleration is measured in speed increase per second. An acceleration value of 12,000 QPPS with a speed of 12,000 QPPS would accelerate a motor from 0 to 12,000 QPPS in 1 second. Another example would be an acceleration value of 24,000 QPPS and a speed value of 12,000 QPPS would accelerate the motor to 12,000 QPPS in 0.5 seconds.
         """
         # :Sends: [Address, 39, Accel(4 Bytes), Speed(4 Bytes)]
-        return self._send(pack('>bIi', Cmd.M2SPEEDACCEL, accel, speed), address=address)
+        return self._send(pack('>BIi', Cmd.M2SPEEDACCEL, accel, speed), address=address)
 
     def speed_accel_m1_m2(self, accel, speed1, speed2, address=None):
         """Drive M1 and M2 in the same command using one value for acceleration and two signed speed values for each motor. The sign indicates which direction the motor will run. The acceleration value is not signed. The motors are sync during acceleration. This command is used to drive the motor by quad pulses per second and using an acceleration value for ramping. Different quadrature encoders will have different rates at which they generate the incoming pulses. The values used will differ from one encoder to another. Once a value is sent the motor will begin to accelerate incrementally until the rate defined is reached.
@@ -425,7 +425,7 @@ class Roboclaw:
         The acceleration is measured in speed increase per second. An acceleration value of 12,000 QPPS with a speed of 12,000 QPPS would accelerate a motor from 0 to 12,000 QPPS in 1 second. Another example would be an acceleration value of 24,000 QPPS and a speed value of 12,000 QPPS would accelerate the motor to 12,000 QPPS in 0.5 seconds.
         """
         # :Sends: [Address, 40, Accel(4 Bytes), SpeedM1(4 Bytes), SpeedM2(4 Bytes)]
-        return self._send(pack('>bIii', Cmd.MIXEDSPEEDACCEL, accel, speed1, speed2), address=address)
+        return self._send(pack('>BIii', Cmd.MIXEDSPEEDACCEL, accel, speed1, speed2), address=address)
 
     def speed_distance_m1(self, speed, distance, buffer, address=None):
         """Drive M1 with a signed speed and distance value. The sign indicates which direction the motor will run. The distance value is not signed. This command is buffered. This command is used to control the top speed and total distance traveled by the motor. Each motor channel M1 and M2 have separate buffers. This command will execute immediately if no other command for that channel is executing, otherwise the command will be buffered in the order it was sent. Any buffered or executing command can be stopped when a new command is issued by setting the Buffer argument. All values used are in quad pulses per second.
@@ -433,7 +433,7 @@ class Roboclaw:
         The Buffer argument can be set to a 1 or 0. If a value of 0 is used the command will be buffered and executed in the order sent. If a value of 1 is used the current running command is stopped, any other commands in the buffer are deleted and the new command is executed.
         """
         # :Sends: [Address, 41, Speed(4 Bytes), Distance(4 Bytes), Buffer]
-        return self._send(pack('>biIb', Cmd.M1SPEEDDIST, speed, distance, buffer), address=address)
+        return self._send(pack('>BiIB', Cmd.M1SPEEDDIST, speed, distance, buffer), address=address)
 
     def speed_distance_m2(self, speed, distance, buffer, address=None):
         """Drive M2 with a speed and distance value. The sign indicates which direction the motor will run. The distance value is not signed. This command is buffered. Each motor channel M1 and M2 have separate buffers. This command will execute immediately if no other command for that channel is executing, otherwise the command will be buffered in the order it was sent. Any buffered or executing command can be stopped when a new command is issued by setting the Buffer argument. All values used are in quad pulses per second.
@@ -441,7 +441,7 @@ class Roboclaw:
         The Buffer argument can be set to a 1 or 0. If a value of 0 is used the command will be buffered and executed in the order sent. If a value of 1 is used the current running command is stopped, any other commands in the buffer are deleted and the new command is executed.
         """
         # :Sends: [Address, 42, Speed(4 Bytes), Distance(4 Bytes), Buffer]
-        return self._send(pack('>biIb', Cmd.M2SPEEDDIST, speed, distance, buffer), address=address)
+        return self._send(pack('>BiIB', Cmd.M2SPEEDDIST, speed, distance, buffer), address=address)
 
     def speed_distance_m1_m2(self, speed1, distance1, speed2, distance2, buffer, address=None):
         """Drive M1 and M2 with a speed and distance value. The sign indicates which direction the motor will run. The distance value is not signed. This command is buffered. Each motor channel M1 and M2 have separate buffers. This command will execute immediately if no other command for that channel is executing, otherwise the command will be buffered in the order it was sent. Any buffered or executing command can be stopped when a new command is issued by setting the Buffer argument. All values used are in quad pulses per second.
@@ -449,7 +449,7 @@ class Roboclaw:
         The Buffer argument can be set to a 1 or 0. If a value of 0 is used the command will be buffered and executed in the order sent. If a value of 1 is used the current running command is stopped, any other commands in the buffer are deleted and the new command is executed.
         """
         # :Sends: [Address, 43, SpeedM1(4 Bytes), DistanceM1(4 Bytes), SpeedM2(4 Bytes), DistanceM2(4 Bytes), Buffer]
-        return self._send(pack('>biIiIb', Cmd.MIXEDSPEEDDIST, speed1, distance1, speed2, distance2, buffer), address=address)
+        return self._send(pack('>BiIiIB', Cmd.MIXEDSPEEDDIST, speed1, distance1, speed2, distance2, buffer), address=address)
 
     def speed_accel_distance_m1(self, accel, speed, distance, buffer, address=None):
         """Drive M1 with a speed, acceleration and distance value. The sign indicates which direction the motor will run. The acceleration and distance values are not signed. This command is used to control the motors top speed, total distanced traveled and at what incremental acceleration value to use until the top speed is reached. Each motor channel M1 and M2 have separate buffers. This command will execute immediately if no other command for that channel is executing, otherwise the command will be buffered in the order it was sent. Any buffered or executing command can be stopped when a new command is issued by setting the Buffer argument. All values used are in quad pulses per second.
@@ -457,7 +457,7 @@ class Roboclaw:
         The Buffer argument can be set to a 1 or 0. If a value of 0 is used the command will be buffered and executed in the order sent. If a value of 1 is used the current running command is stopped, any other commands in the buffer are deleted and the new command is executed.
         """
         # :Sends: [Address, 44, Accel(4 bytes), Speed(4 Bytes), Distance(4 Bytes), Buffer]
-        return self._send(pack('>bIiIb', Cmd.M1SPEEDACCELDIST, accel, speed, distance, buffer), address=address)
+        return self._send(pack('>BIiIB', Cmd.M1SPEEDACCELDIST, accel, speed, distance, buffer), address=address)
 
     def speed_accel_distance_m2(self, accel, speed, distance, buffer, address=None):
         """Drive M2 with a speed, acceleration and distance value. The sign indicates which direction the motor will run. The acceleration and distance values are not signed. This command is used to control the motors top speed, total distanced traveled and at what incremental acceleration value to use until the top speed is reached. Each motor channel M1 and M2 have separate buffers. This command will execute immediately if no other command for that channel is executing, otherwise the command will be buffered in the order it was sent. Any buffered or executing command can be stopped when a new command is issued by setting the Buffer argument. All values used are in quad pulses per second.
@@ -465,7 +465,7 @@ class Roboclaw:
         The Buffer argument can be set to a 1 or 0. If a value of 0 is used the command will be buffered and executed in the order sent. If a value of 1 is used the current running command is stopped, any other commands in the buffer are deleted and the new command is executed.
         """
         # :Sends: [Address, 45, Accel(4 bytes), Speed(4 Bytes), Distance(4 Bytes), Buffer]
-        return self._send(pack('>bIiIb', Cmd.M2SPEEDACCELDIST, accel, speed, distance, buffer), address=address)
+        return self._send(pack('>BIiIB', Cmd.M2SPEEDACCELDIST, accel, speed, distance, buffer), address=address)
 
     def speed_accel_distance_m1_m2(self, accel, speed1, distance1, speed2, distance2, buffer, address=None):
         """Drive M1 and M2 with a speed, acceleration and distance value. The sign indicates which direction the motor will run. The acceleration and distance values are not signed. This command is used to control both motors top speed, total distanced traveled and at what incremental acceleration value to use until the top speed is reached. Each motor channel M1 and M2 have separate buffers. This command will execute immediately if no other command for that channel is executing, otherwise the command will be buffered in the order it was sent. Any buffered or executing command can be stopped when a new command is issued by setting the Buffer argument. All values used are in quad pulses per second.
@@ -473,7 +473,7 @@ class Roboclaw:
         The Buffer argument can be set to a 1 or 0. If a value of 0 is used the command will be buffered and executed in the order sent. If a value of 1 is used the current running command is stopped, any other commands in the buffer are deleted and the new command is executed.
         """
         # :Sends: [Address, 46, Accel(4 Bytes), SpeedM1(4 Bytes), DistanceM1(4 Bytes), SpeedM2(4 bytes), DistanceM2(4 Bytes), Buffer]
-        return self._send(pack('>bIiIiIb', Cmd.MIXEDSPEEDACCELDIST, accel, speed1, distance1, speed2, distance2, buffer), address=address)
+        return self._send(pack('>BIiIiIB', Cmd.MIXEDSPEEDACCELDIST, accel, speed1, distance1, speed2, distance2, buffer), address=address)
 
     def read_buffer_length(self, address=None):
         """Read both motor M1 and M2 buffer lengths. This command can be used to determine how many commands are waiting to execute.
@@ -482,7 +482,7 @@ class Roboclaw:
 
         The return values represent how many commands per buffer are waiting to be executed. The maximum buffer size per motor is 64 commands(0x3F). A return value of 0x80(128) indicates the buffer is empty. A return value of 0 indiciates the last command sent is executing. A value of 0x80 indicates the last command buffered has finished.
         """
-        val = unpack('>bb', self._recv(self._send(pack('>b', Cmd.GETBUFFERS), address=address, ack=2)))
+        val = unpack('>BB', self._recv(self._send(pack('>B', Cmd.GETBUFFERS), address=address, ack=2)))
         if val:
             return (1, val[0], val[1])
         return (0, 0, 0)
@@ -493,7 +493,7 @@ class Roboclaw:
         :Returns: [M1 PWM(2 bytes), M2 PWM(2 bytes)]
         """
         # Send: [Address, 48]
-        val = unpack('>hh', self._recv(self._send(pack('>b', Cmd.GETPWMS), address=address, ack=4)))
+        val = unpack('>hh', self._recv(self._send(pack('>B', Cmd.GETPWMS), address=address, ack=4)))
         if val:
             return (1, val[0], val[1])
         return (0, 0, 0)
@@ -504,7 +504,7 @@ class Roboclaw:
         :Returns: [M1 Current(2 bytes), M2 Currrent(2 bytes)]
         """
         # Send: [Address, 49]
-        val = unpack('>hh', self._recv(self._send(pack('>b', Cmd.GETCURRENTS), address=address, ack=4)))
+        val = unpack('>hh', self._recv(self._send(pack('>B', Cmd.GETCURRENTS), address=address, ack=4)))
         if val:
             return (1, val[0], val[1])
         return (0, 0, 0)
@@ -515,7 +515,7 @@ class Roboclaw:
         The acceleration is measured in speed increase per second. An acceleration value of 12,000 QPPS with a speed of 12,000 QPPS would accelerate a motor from 0 to 12,000 QPPS in 1 second. Another example would be an acceleration value of 24,000 QPPS and a speed value of 12,000 QPPS would accelerate the motor to 12,000 QPPS in 0.5 seconds.
         """
         # :Sends: [Address, 50, AccelM1(4 Bytes), SpeedM1(4 Bytes), AccelM2(4 Bytes), SpeedM2(4 Bytes)]
-        return self._send(pack('>bIiIi', Cmd.MIXEDSPEED2ACCEL, accel1, speed1, accel2, speed2), address=address)
+        return self._send(pack('>BIiIi', Cmd.MIXEDSPEED2ACCEL, accel1, speed1, accel2, speed2), address=address)
 
     def speed_accel_distance_m1_m2_2(self, accel1, speed1, distance1, accel2, speed2, distance2, buffer, address=None):
         """Drive M1 and M2 in the same command using one value for acceleration and two signed speed values for each motor. The sign indicates which direction the motor will run. The acceleration value is not signed. The motors are sync during acceleration. This command is used to drive the motor by quad pulses per second and using an acceleration value for ramping. Different quadrature encoders will have different rates at which they generate the incoming pulses. The values used will differ from one encoder to another. Once a value is sent the motor will begin to accelerate incrementally until the rate defined is reached.
@@ -523,7 +523,7 @@ class Roboclaw:
         The acceleration is measured in speed increase per second. An acceleration value of 12,000 QPPS with a speed of 12,000 QPPS would accelerate a motor from 0 to 12,000 QPPS in 1 second. Another example would be an acceleration value of 24,000 QPPS and a speed value of 12,000 QPPS would accelerate the motor to 12,000 QPPS in 0.5 seconds.
         """
         # :Sends: [Address, 50, AccelM1(4 Bytes), SpeedM1(4 Bytes), AccelM2(4 Bytes), SpeedM2(4 Bytes)]
-        return self._send(pack('>bIiIIiIb', Cmd.MIXEDSPEED2ACCELDIST, accel1, speed1, distance1, accel2, speed2, distance2, buffer), address=address)
+        return self._send(pack('>BIiIIiIB', Cmd.MIXEDSPEED2ACCELDIST, accel1, speed1, distance1, accel2, speed2, distance2, buffer), address=address)
 
     def duty_accel_m1(self, accel, duty, address=None):
         """Drive M1 with a signed duty and acceleration value. The sign indicates which direction the motor will run. The acceleration values are not signed. This command is used to drive the motor by PWM and using an acceleration value for ramping. Accel is the rate per second at which the duty changes from the current duty to the specified duty.
@@ -531,7 +531,7 @@ class Roboclaw:
         The duty value is signed and the range is -32768 to +32767(eg. +-100% duty). The accel value range is 0 to 655359(eg maximum acceleration rate is -100% to 100% in 100ms).
         """
         # :Sends: [Address, 52, Duty(2 bytes), Accel(2 Bytes)]
-        return self._send(pack('>bhI', Cmd.M1DUTYACCEL, duty, accel), address=address)
+        return self._send(pack('>BhI', Cmd.M1DUTYACCEL, duty, accel), address=address)
 
     def duty_accel_m2(self, accel, duty, address=None):
         """Drive M2 with a signed duty and acceleration value. The sign indicates which direction the motor will run. The acceleration values are not signed. This command is used to drive the motor by PWM and using an acceleration value for ramping. Accel is the rate at which the duty changes from the current duty to the specified dury.
@@ -539,7 +539,7 @@ class Roboclaw:
         The duty value is signed and the range is -32768 to +32767 (eg. +-100% duty). The accel value range is 0 to 655359 (eg maximum acceleration rate is -100% to 100% in 100ms).
         """
         # :Sends: [Address, 53, Duty(2 bytes), Accel(2 Bytes)]
-        return self._send(pack('>bhI', Cmd.M2DUTYACCEL, duty, accel), address=address)
+        return self._send(pack('>BhI', Cmd.M2DUTYACCEL, duty, accel), address=address)
 
     def duty_accel_m1_m2(self, accel1, duty1, accel2, duty2, address=None):
         """Drive M1 and M2 in the same command using acceleration and duty values for each motor. The sign indicates which direction the motor will run. The acceleration value is not signed. This command is used to drive the motor by PWM using an acceleration value for ramping.
@@ -547,7 +547,7 @@ class Roboclaw:
         The duty value is signed and the range is -32768 to +32767 (eg. +-100% duty). The accel value range is 0 to 655359 (eg maximum acceleration rate is -100% to 100% in 100ms).
         """
         # :Sends: [Address, CMD, DutyM1(2 bytes), AccelM1(4 Bytes), DutyM2(2 bytes), AccelM1(4 bytes)]
-        return self._send(pack('>bhIhI', Cmd.MIXEDDUTYACCEL, duty1, accel1, duty2, accel2), address=address)
+        return self._send(pack('>BhIhI', Cmd.MIXEDDUTYACCEL, duty1, accel1, duty2, accel2), address=address)
 
     def read_m1_velocity_pid(self, address=None):
         """Read the PID and QPPS Settings.
@@ -555,7 +555,7 @@ class Roboclaw:
         :Returns: [P(4 bytes), I(4 bytes), D(4 bytes), QPPS(4 byte)]
         """
         # :Sends: [Address, 55]
-        data = unpack('iiii', self._recv(self._send(pack('>b', Cmd.READM1PID), address=address, ack=16)))
+        data = unpack('iiii', self._recv(self._send(pack('>B', Cmd.READM1PID), address=address, ack=16)))
         if data:
             return (data[0], data[1] / 65536.0, data[2] / 65536.0, data[3] / 65536.0)
         return (0, 0, 0, 0)
@@ -566,7 +566,7 @@ class Roboclaw:
         :Returns: [P(4 bytes), I(4 bytes), D(4 bytes), QPPS(4 byte)]
         """
         # :Sends: [Address, 55]
-        data = unpack('iiii', self._recv(self._send(pack('>b', Cmd.READM2PID), address=address, ack=16)))
+        data = unpack('iiii', self._recv(self._send(pack('>B', Cmd.READM2PID), address=address, ack=16)))
         if data:
             return (data[0], data[1] / 65536.0, data[2] / 65536.0, data[3] / 65536.0)
         return (0, 0, 0, 0)
@@ -574,19 +574,19 @@ class Roboclaw:
     def set_main_voltages(self, minimum, maximum, address=None):
         """Set the Main Battery Voltage cutoffs, Min and Max. Min and Max voltages are in 10th of a volt increments. Multiply the voltage to set by 10."""
         # :Sends: [Address, 57, Min(2 bytes), Max(2bytes]
-        return self._send(pack('>bHH', Cmd.SETMAINVOLTAGES, minimum, maximum), address=address)
+        return self._send(pack('>BHH', Cmd.SETMAINVOLTAGES, minimum, maximum), address=address)
 
     def set_logic_voltages(self, minimum, maximum, address=None):
         """Set the Logic Battery Voltages cutoffs, Min and Max. Min and Max voltages are in 10th of a volt increments. Multiply the voltage to set by 10."""
         # :Sends: [Address, 58, Min(2 bytes), Max(2bytes]
-        return self._send(pack('>bHH', Cmd.SETLOGICVOLTAGES, minimum, maximum), address=address)
+        return self._send(pack('>BHH', Cmd.SETLOGICVOLTAGES, minimum, maximum), address=address)
 
     def read_min_max_main_voltages(self, address=None):
         """Read the Main Battery Voltage Settings. The voltage is calculated by dividing the value by 10
 
         :Returns: [Min(2 bytes), Max(2 bytes)]
         """
-        val = unpack('>HH', self._recv(self._send(pack('>b', Cmd.GETMINMAXMAINVOLTAGES), address=address, ack=4)))
+        val = unpack('>HH', self._recv(self._send(pack('>B', Cmd.GETMINMAXMAINVOLTAGES), address=address, ack=4)))
         if val:
             return (1, val[0], val[1])
         return (0, 0, 0)
@@ -596,7 +596,7 @@ class Roboclaw:
 
         :Returns: [Min(2 bytes), Max(2 bytes)]
         """
-        val = unpack('>HH', self._recv(self._send(pack('>b', Cmd.GETMINMAXLOGICVOLTAGES), address=address, ack=4)))
+        val = unpack('>HH', self._recv(self._send(pack('>B', Cmd.GETMINMAXLOGICVOLTAGES), address=address, ack=4)))
         if val:
             return (1, val[0], val[1])
         return (0, 0, 0)
@@ -607,7 +607,7 @@ class Roboclaw:
         Position constants are used only with the Position commands, 65,66 and 67 or when encoders are enabled in RC/Analog modes.
         """
         # :Sends: [Address, 61, D(4 bytes), P(4 bytes), I(4 bytes), MaxI(4 bytes), Deadzone(4 bytes), MinPos(4 bytes), MaxPos(4 bytes)]
-        return self._send(pack('>bIIIIIII', Cmd.SETM1POSPID, kd * 1024, kp * 1024, ki * 1024, kimax, deadzone, minimum, maximum), address=address)
+        return self._send(pack('>BIIIIIII', Cmd.SETM1POSPID, kd * 1024, kp * 1024, ki * 1024, kimax, deadzone, minimum, maximum), address=address)
 
     def set_m2_position_pid(self, kp, ki, kd, kimax, deadzone, minimum, maximum, address=None):
         """The RoboClaw Position PID system consist of seven constants starting with P = Proportional, I= Integral and D= Derivative, MaxI = Maximum Integral windup, Deadzone in encoder counts, MinPos = Minimum Position and MaxPos = Maximum Position. The defaults values are all zero.
@@ -615,14 +615,14 @@ class Roboclaw:
         Position constants are used only with the Position commands, 65,66 and 67 or when encoders are enabled in RC/Analog modes.
         """
         # :Sends: [Address, 62, D(4 bytes), P(4 bytes), I(4 bytes), MaxI(4 bytes), Deadzone(4 bytes), MinPos(4 bytes), MaxPos(4 bytes)]
-        return self._send(pack('>bIIIIIII', Cmd.SETM2POSPID, kd * 1024, kp * 1024, ki * 1024, kimax, deadzone, minimum, maximum), address=address)
+        return self._send(pack('>BIIIIIII', Cmd.SETM2POSPID, kd * 1024, kp * 1024, ki * 1024, kimax, deadzone, minimum, maximum), address=address)
 
     def read_m1_position_pid(self, address=None):
         """Read the Position PID Settings.
 
         :Returns: [P(4 bytes), I(4 bytes), D(4 bytes), MaxI(4 byte), Deadzone(4 byte), MinPos(4 byte), MaxPos(4 byte)]
         """
-        data = unpack('>IIIIIII', self._recv(self._send(pack('>b', Cmd.READM1POSPID), address=address, ack=28)))
+        data = unpack('>IIIIIII', self._recv(self._send(pack('>B', Cmd.READM1POSPID), address=address, ack=28)))
         if data:
             return (data[0], data[1] / 1024.0, data[2] / 1024.0, data[3] / 1024.0)
         return (0, 0, 0, 0, 0, 0, 0)
@@ -632,7 +632,7 @@ class Roboclaw:
 
         :Returns: [P(4 bytes), I(4 bytes), D(4 bytes), MaxI(4 byte), Deadzone(4 byte), MinPos(4 byte), MaxPos(4 byte)]
         """
-        data = unpack('>IIIIIII', self._recv(self._send(pack('>b', Cmd.READM2POSPID), address=address, ack=28)))
+        data = unpack('>IIIIIII', self._recv(self._send(pack('>B', Cmd.READM2POSPID), address=address, ack=28)))
         if data:
             return (1, data[0] / 1024.0, data[1] / 1024.0, data[2] / 1024.0)
         return (0, 0, 0, 0, 0, 0, 0)
@@ -641,31 +641,31 @@ class Roboclaw:
         """Move M1 position from the current position to the specified new position and hold the new position. Accel sets the acceleration value and deccel the decceleration value. QSpeed sets the speed in quadrature pulses the motor will run at after acceleration and before decceleration.
         """
         # :Sends: [Address, 65, Accel(4 bytes), Speed(4 Bytes), Deccel(4 bytes), Position(4 Bytes), Buffer]
-        return self._send(pack('>bIIIIb', Cmd.M1SPEEDACCELDECCELPOS, accel, speed, deccel, position, buffer), address=address)
+        return self._send(pack('>BIIIIB', Cmd.M1SPEEDACCELDECCELPOS, accel, speed, deccel, position, buffer), address=address)
 
     def speed_accel_deccel_position_m2(self, accel, speed, deccel, position, buffer, address=None):
         """Move M2 position from the current position to the specified new position and hold the new position. Accel sets the acceleration value and deccel the decceleration value. QSpeed sets the speed in quadrature pulses the motor will run at after acceleration and before decceleration.
         """
         # :Sends: [Address, 66, Accel(4 bytes), Speed(4 Bytes), Deccel(4 bytes), Position(4 Bytes), Buffer]
-        return self._send(pack('>bIIIIb', Cmd.M2SPEEDACCELDECCELPOS, accel, speed, deccel, position, buffer), address=address)
+        return self._send(pack('>BIIIIB', Cmd.M2SPEEDACCELDECCELPOS, accel, speed, deccel, position, buffer), address=address)
 
     def speed_accel_deccel_position_m1_m2(self, accel1, speed1, deccel1, position1, accel2, speed2, deccel2, position2, buffer, address=None):
         """Move M1 & M2 positions from their current positions to the specified new positions and hold the new positions. Accel sets the acceleration value and deccel the decceleration value. QSpeed sets the speed in quadrature pulses the motor will run at after acceleration and before decceleration.
         """
         # :Sends: [Address, 67, AccelM1(4 bytes), SpeedM1(4 Bytes), DeccelM1(4 bytes), PositionM1(4 Bytes), AccelM2(4 bytes), SpeedM2(4 Bytes), DeccelM2(4 bytes), PositionM2(4 Bytes), Buffer]
-        return self._send(pack('>bIIIIIIIIb', Cmd.MIXEDSPEEDACCELDECCELPOS, accel1, speed1, deccel1, position1, accel2, speed2, deccel2, position2, buffer), address=address)
+        return self._send(pack('>BIIIIIIIIB', Cmd.MIXEDSPEEDACCELDECCELPOS, accel1, speed1, deccel1, position1, accel2, speed2, deccel2, position2, buffer), address=address)
 
     def set_m1_default_accel(self, accel, address=None):
         """Set the default acceleration for M1 when using duty cycle commands (`duty_m1()` and `duty_m1_m2()`) or when using Standard Serial, RC and Analog PWM modes.
         """
         # :Sends: [Address, 68, Accel(4 bytes)]
-        return self._send(pack('>bI', Cmd.SETM1DEFAULTACCEL, accel), address=address)
+        return self._send(pack('>BI', Cmd.SETM1DEFAULTACCEL, accel), address=address)
 
     def set_m2_default_accel(self, accel, address=None):
         """Set the default acceleration for M2 when using duty cycle commands (`duty_m2()` and `duty_m1_m2()`) or when using Standard Serial, RC and Analog PWM modes.
         """
         # :Sends: [Address, 69, Accel(4 bytes)]
-        return self._send(pack('>bI', Cmd.SETM2DEFAULTACCEL, accel), address=address)
+        return self._send(pack('>BI', Cmd.SETM2DEFAULTACCEL, accel), address=address)
 
     def set_pin_functions(self, s3mode, s4mode, s5mode, address=None):
         """Set modes for S3,S4 and S5.
@@ -690,7 +690,7 @@ class Roboclaw:
         """
         # :Returns: [0xFF]
         # :Sends: [Address, 74, S3mode, S4mode, S5mode]
-        return self._send(pack('>bbbb', Cmd.SETPINFUNCTIONS, s3mode, s4mode, s5mode), address=address)
+        return self._send(pack('>BBBB', Cmd.SETPINFUNCTIONS, s3mode, s4mode, s5mode), address=address)
 
     def read_pin_functions(self, address=None):
         """Read mode settings for S3,S4 and S5. See `set_pin_functions()` for mode descriptions
@@ -698,7 +698,7 @@ class Roboclaw:
         :Returns: [S3mode, S4mode, S5mode]
         """
         # :Sends: [Address, 75]
-        val = unpack('>bbb', self._recv(self._send(pack('>b', Cmd.GETPINFUNCTIONS), address=address, ack=3)))
+        val = unpack('>BBB', self._recv(self._send(pack('>B', Cmd.GETPINFUNCTIONS), address=address, ack=3)))
         if val:
             return (1, val[0], val[1], val[2])
         return (0, 0, 0)
@@ -708,7 +708,7 @@ class Roboclaw:
         """
         # :Sends: [Address, 76, Reverse, Forward]
         # :Returns: [0xFF]
-        return self._send(pack('>bbb', Cmd.SETDEADBAND, minimum, maximum), address=address)
+        return self._send(pack('>BBB', Cmd.SETDEADBAND, minimum, maximum), address=address)
 
     def get_deadband(self, address=None):
         """Read DeadBand settings in 10ths of a percent.
@@ -716,7 +716,7 @@ class Roboclaw:
         :Returns: [Reverse, SForward]
         """
         # :Sends: [Address, 77]
-        val = unpack('>bb', self._recv(self._send(pack('>b', Cmd.GETDEADBAND), address=address, ack=2)))
+        val = unpack('>BB', self._recv(self._send(pack('>B', Cmd.GETDEADBAND), address=address, ack=2)))
         if val:
             return (1, val[0], val[1])
         return (0, 0, 0)
@@ -728,21 +728,21 @@ class Roboclaw:
             Baudrate will change if not already set to 38400.  Communications will be lost.
         """
         # :Sends: [Address, 80]
-        return self._send(pack('>b', Cmd.RESTOREDEFAULTS), address=address)
+        return self._send(pack('>B', Cmd.RESTOREDEFAULTS), address=address)
 
     def read_temp(self, address=None):
         """Read the board temperature. Value returned is in 10ths of degrees.
 
         :Returns: [Temperature(2 bytes)]
         """
-        return unpack('>h', self._recv(self._send(pack('>b', Cmd.GETTEMP), address=address, ack=2)))
+        return unpack('>h', self._recv(self._send(pack('>B', Cmd.GETTEMP), address=address, ack=2)))
 
     def read_temp2(self, address=None):
         """Read the second board temperature(only on supported units). Value returned is in 10ths of degrees.
 
         :Returns: [Temperature(2 bytes)]
         """
-        return unpack('>h', self._recv(self._send(pack('>b', Cmd.GETTEMP2), address=address, ack=2)))
+        return unpack('>h', self._recv(self._send(pack('>B', Cmd.GETTEMP2), address=address, ack=2)))
 
     def read_error(self, address=None):
         """Read the current unit status.
@@ -767,14 +767,14 @@ class Roboclaw:
         Temperature2 Warning      0x2000
         ========================= ===============
         """
-        return unpack('>b', self._recv(self._send(pack('>b', Cmd.GETERROR), address=address, ack=1)))
+        return unpack('>B', self._recv(self._send(pack('>B', Cmd.GETERROR), address=address, ack=1)))
 
     def read_encoder_modes(self, address=None):
         """Read the encoder pins assigned for both motors.
 
         :Returns: [Enc1Mode, Enc2Mode]
         """
-        val = unpack('>bb', self._recv(self._send(pack('>b', Cmd.GETENCODERMODE), address=address, ack=2)))
+        val = unpack('>BB', self._recv(self._send(pack('>B', Cmd.GETENCODERMODE), address=address, ack=2)))
         if val:
             return (1, val[0], val[1])
         return (0, 0, 0)
@@ -782,18 +782,18 @@ class Roboclaw:
     def set_m1_encoder_mode(self, mode, address=None):
         """Set the Encoder Pin for motor 1. See `read_encoder_modes()`."""
         # :Sends: [Address, 92, Pin]
-        return self._send(pack('>bb', Cmd.SETM1ENCODERMODE, mode), address=address)
+        return self._send(pack('>BB', Cmd.SETM1ENCODERMODE, mode), address=address)
 
     def set_m2_encoder_mode(self, mode, address=None):
         """Set the Encoder Pin for motor 2. See `read_encoder_modes()`."""
         # :Sends: [Address, 93, Pin]
-        return self._send(pack('>bb', Cmd.SETM2ENCODERMODE, mode), address=address)
+        return self._send(pack('>BB', Cmd.SETM2ENCODERMODE, mode), address=address)
 
     def write_nvm(self, address=None):
         """Writes all settings to non-volatile memory. Values will be loaded after each power up.
         """
         # :Sends: [Address, 94]
-        return self._send(pack('>bI', Cmd.WRITENVM, 0xE22EAB7A), address=address)
+        return self._send(pack('>BI', Cmd.WRITENVM, 0xE22EAB7A), address=address)
 
     def read_nvm(self, address=None):
         """Read all settings from non-volatile memory.
@@ -804,7 +804,7 @@ class Roboclaw:
             If baudrate changes or the control mode changes communications will be lost.
         """
         # :Sends: [Address, 95]
-        return unpack('>bb', self._recv(self._send(pack('>b', Cmd.READNVM), address=address, ack=2)))
+        return unpack('>BB', self._recv(self._send(pack('>B', Cmd.READNVM), address=address, ack=2)))
 
     def set_config(self, config, address=None):
         """Set config bits for standard settings.
@@ -857,7 +857,7 @@ class Roboclaw:
         """
         # :Sends: [Address, 98, Config(2 bytes)]
         # :Returns: [0xFF]
-        return self._send(pack('>bh', Cmd.SETCONFIG, config), address=address)
+        return self._send(pack('>Bh', Cmd.SETCONFIG, config), address=address)
 
     def get_config(self, address=None):
         """Read config bits for standard settings See `set_config()`.
@@ -865,26 +865,26 @@ class Roboclaw:
         :Returns: [Config(2 bytes)]
         """
         # :Sends: [Address, 99]
-        return unpack('>h', self._recv(self._send(pack('>b', Cmd.GETCONFIG), address=address, ack=2)))
+        return unpack('>h', self._recv(self._send(pack('>B', Cmd.GETCONFIG), address=address, ack=2)))
 
     def set_m1_max_current(self, maximum, address=None):
         """Set Motor 1 Maximum Current Limit. Current value is in 10ma units. To calculate multiply current limit by 100.
         """
         # :Sends: [Address, 134, MaxCurrent(4 bytes), 0, 0, 0, 0]
-        return self._send(pack('>bII', Cmd.SETM1MAXCURRENT, maximum, 0), address=address)
+        return self._send(pack('>BII', Cmd.SETM1MAXCURRENT, maximum, 0), address=address)
 
     def set_m2_max_current(self, maximum, address=None):
         """Set Motor 2 Maximum Current Limit. Current value is in 10ma units. To calculate multiply current limit by 100.
         """
         # :Sends: [Address, 134, MaxCurrent(4 bytes), 0, 0, 0, 0]
-        return self._send(pack('>bII', Cmd.SETM2MAXCURRENT, maximum, 0), address=address)
+        return self._send(pack('>BII', Cmd.SETM2MAXCURRENT, maximum, 0), address=address)
 
     def read_m1_max_current(self, address=None):
         """Read Motor 1 Maximum Current Limit. Current value is in 10ma units. To calculate divide value by 100. MinCurrent is always 0.
 
         :Returns: [MaxCurrent(4 bytes), MinCurrent(4 bytes)]
         """
-        data = unpack('>II', self._recv(self._send(pack('>b', Cmd.GETM1MAXCURRENT), address=address, ack=8)))
+        data = unpack('>II', self._recv(self._send(pack('>B', Cmd.GETM1MAXCURRENT), address=address, ack=8)))
         if data:
             return data
         return (0, 0)
@@ -894,7 +894,7 @@ class Roboclaw:
 
         :Returns: [MaxCurrent(4 bytes), MinCurrent(4 bytes)]
         """
-        data = unpack('>II', self._recv(self._send(pack('>b', Cmd.GETM2MAXCURRENT), address=address, ack=8)))
+        data = unpack('>II', self._recv(self._send(pack('>B', Cmd.GETM2MAXCURRENT), address=address, ack=8)))
         if data[0]:
             return data
         return (0, 0)
@@ -903,14 +903,14 @@ class Roboclaw:
         """Set PWM Drive mode. Locked Antiphase(0) or Sign Magnitude(1).
         """
         # :Sends: [Address, 148, Mode]
-        return self._send(pack('>bb', Cmd.SETPWMMODE, mode), address=address)
+        return self._send(pack('>BB', Cmd.SETPWMMODE, mode), address=address)
 
     def read_pwm_mode(self, address=None):
         """Read PWM Drive mode. See `set_pwm_mode()`.
 
         :Returns: [PWMMode]
         """
-        return unpack('>b', self._recv(self._send(pack('>b', Cmd.GETPWMMODE), address=address, ack=1)))
+        return unpack('>B', self._recv(self._send(pack('>B', Cmd.GETPWMMODE), address=address, ack=1)))
 
     def read_eeprom(self, ee_address, address=None):
         """Read a value from the User EEProm memory(256 bytes).
@@ -918,7 +918,7 @@ class Roboclaw:
         :Returns: [Value(2 bytes)]
         """
         # :Sends: [Address, 252, EEProm Address(byte)]
-        val = unpack('>H', self._recv(self._send(pack('>bb', Cmd.READEEPROM, ee_address), address=address, ack=2)))
+        val = unpack('>H', self._recv(self._send(pack('>BB', Cmd.READEEPROM, ee_address), address=address, ack=2)))
         if val:
             return (1, val[0])
         return (0, 0)
@@ -927,7 +927,7 @@ class Roboclaw:
         """Get Priority Levels.
         """
         # :Sends: [Address, 253, Address(byte), Value(2 bytes)]
-        val = unpack('>b', self._recv(self._send(pack('>bbH', Cmd.WRITEEEPROM, ee_address, ee_word), address=address, ack=1, crc=0)))
+        val = unpack('>B', self._recv(self._send(pack('>BBH', Cmd.WRITEEEPROM, ee_address, ee_word), address=address, ack=1, crc=0)))
         if val[1] == 0xaa:
             return True
         return False
