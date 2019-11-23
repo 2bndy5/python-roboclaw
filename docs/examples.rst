@@ -62,6 +62,20 @@ Position
     :caption: examples/roboclaw_position.py
     :linenos:
 
+RC mode Pulses
+--------------
+
+.. literalinclude:: ../examples/roboclaw_rcpulses.py
+    :caption: examples/roboclaw_rcpulses.py
+    :linenos:
+
+RC mode Pulses Mixed
+--------------------
+
+.. literalinclude:: ../examples/roboclaw_rcpulsemixed.py
+    :caption: examples/roboclaw_rcpulsemixed.py
+    :linenos:
+
 Read Various Data
 -----------------
 
