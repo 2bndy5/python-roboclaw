@@ -38,9 +38,12 @@ autodoc_mock_imports = ["serial"]
 autodoc_member_order = 'bysource'
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.4', None),
-    'pySerial': ('http://pyserial.readthedocs.io/en/latest/', None)}
-
+    'python': ('https://docs.python.org/3.6', None),
+    'CircuitPython': ('https://circuitpython.readthedocs.io/en/latest/', None),
+    'MicroPython' : ('http://docs.micropython.org/en/latest/', None),
+    'circuitpython-nrf24l01':('https://circuitpython-nrf24l01.readthedocs.io/en/stable/', None),
+    'PySerial' : ('https://pyserial.readthedocs.io/en/latest/', None)
+}
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

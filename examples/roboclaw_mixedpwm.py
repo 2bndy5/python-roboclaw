@@ -1,30 +1,40 @@
 import time
 from roboclaw import Roboclaw
+try:  # if on win32 or linux
+    from serial import SerialException, Serial as UART
+except ImportError:
+    try:  # try CircuitPython
+        from board import UART
+    except ImportError:
+        try:  # try MicroPythom
+            from roboclaw.usart_serial_ctx import SerialUART as UART
 
 # Windows comport name
-rc = Roboclaw("COM9", 115200)
+# rc = Roboclaw(UART("COM3", 115200))
 # Linux comport name
-# rc = Roboclaw("/dev/ttyACM0", 115200)
+# rc = Roboclaw(UART("/dev/ttyACM0", 115200))
+# if CircuitPython or MicroPythom
+rc = Roboclaw(UART(), address=0x80)
 
-rc.Open()
-address = 0x80
+rc.forward_mixed(0)
+rc.turn_right_mixed(0)
 
-rc.ForwardMixed(address, 0)
-rc.TurnRightMixed(address, 0)
 
-while 1:
-	rc.ForwardMixed(address, 32)
-	time.sleep(2)
-	rc.BackwardMixed(address, 32)
-	time.sleep(2)
-	rc.TurnRightMixed(address, 32)
-	time.sleep(2)
-	rc.TurnLeftMixed(address, 32)
-	time.sleep(2)
-	rc.ForwardMixed(address, 0)
-	rc.TurnRightMixed(address, 32)
-	time.sleep(2)
-	rc.TurnLeftMixed(address, 32)
-	time.sleep(2)
-	rc.TurnRightMixed(address, 0)
-	time.sleep(2)
+def test(loop=2):
+    while loop:
+        rc.forward_mixed(32)
+        time.sleep(2)
+        rc.backward_mixed(32)
+        time.sleep(2)
+        rc.turn_right_mixed(32)
+        time.sleep(2)
+        rc.turn_left_mixed(32)
+        time.sleep(2)
+        rc.forward_mixed(0)
+        rc.turn_right_mixed(32)
+        time.sleep(2)
+        rc.turn_left_mixed(32)
+        time.sleep(2)
+        rc.turn_right_mixed(0)
+        time.sleep(2)
+        loop -= 1

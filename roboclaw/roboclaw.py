@@ -3,13 +3,13 @@ the roboclaw via a UART serial"""
 import os
 from struct import pack, unpack
 from .serial_commands import Cmd
-from .data_manip import crc16, validate
+from .data_manip import crc16, validate16
 
 # pylint: disable=line-too-long,invalid-name,too-many-function-args,too-many-public-methods
 
 # this function doesn't need a self pointer
 def _recv(buf):
-    if validate(buf):
+    if validate16(buf):
         return buf[:-2]
     return False
 
