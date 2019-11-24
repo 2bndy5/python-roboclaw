@@ -13,11 +13,11 @@ Roboclaw driver class
 .. automodule:: roboclaw.roboclaw
     :members:
 
-.. Roboclaw serial commands
-.. ------------------------
+Roboclaw serial commands
+------------------------
 
-.. .. automodule:: roboclaw.serial_commands
-..     :members:
+.. automodule:: roboclaw.serial_commands
+    :members:
 
 Helpers
 ===========
