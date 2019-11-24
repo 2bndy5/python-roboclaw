@@ -22,13 +22,6 @@ Roboclaw driver class
 Helpers
 ===========
 
-Motor object helper class
--------------------------
-
-.. automodule:: roboclaw.motor_channel
-    :members:
-    :show-inheritance:
-
 CRC16 data manipulation
 ------------------------
 
