@@ -1,7 +1,13 @@
-"""This module contains a wrapper class for MicroPython's machine.UART class to
-utilize python's context manager"""
-# pylint: disable=import-error
-from machine import UART
+"""This module contains a wrapper class for MicroPython's machine.UART and
+CircuitPython's busio.UART class to work as a drop-in replacement to
+pySerial's serial.Serial` object with python's context manager."""
+# pylint: disable=import-error,too-many-arguments
+MICROPY = False
+try:
+    from busio import UART
+except ImportError: # running on a MicroPython board
+    from machine import UART
+    MICROPY = True
 
 class SerialUART(UART):
     """A wrapper class for MicroPython's machine.UART class to utilize python's context
@@ -9,8 +15,8 @@ class SerialUART(UART):
     only as a drop-in replacement for CircuitPython's `busio.UART` or PySerial's
     `~serial.Serial` module API.
 
-    :param ~microcontroller.Pin tx: The pin used for sending data.
-    :param ~microcontroller.Pin rx: The pin used for receiving data.
+    :param ~microcontroller.Pin tx_pin: The pin used for sending data.
+    :param ~microcontroller.Pin rx_pin: The pin used for receiving data.
     :param int baudrate: The baudrate of the Serial port. Defaults to ``9600``.
     :param int bits: The number of bits per byte. Options are limited to ``8`` or ``9``.
         Defaults to ``8``.
@@ -21,25 +27,53 @@ class SerialUART(UART):
         payload (kinda like the null character in a C-style string). Options are limited to
         ``1`` or ``2``. Defaults to ``1``.
     """
-    def __init__(self, tx=None, rx=None, baudrate=9600, bits=8, parity=None, stop=1):
-        super(SerialUART, self).__init__(
-            baudrate=baudrate, bits=bits, parity=parity, stop=stop, tx=tx, rx=rx
-        )
+    def __init__(self, tx_pin=None, rx_pin=None, baudrate=9600, bits=8, parity=None, stop=1):
+        if MICROPY:
+            super(SerialUART, self).__init__(
+                tx=tx_pin, rx=rx_pin, baudrate=baudrate, bits=bits, parity=parity, stop=stop
+            )
+        else:
+            super(SerialUART, self).__init__(
+                tx_pin, rx_pin, baudrate=baudrate, bits=bits, parity=parity, stop=stop
+            )
 
     def __enter__(self):
-        self.init(
-            baudrate=self.baudrate,
-            bits=self.bits,
-            parity=self.parity,
-            stop=self.stop,
-            tx=self.tx,
-            rx=self.rx
-        )
+        """Used to reinitialize serial port with the correct configuration ("enter"
+        ``with`` block)"""
+        if MICROPY:
+            self.init(
+                baudrate=self.baudrate,
+                bits=self.bits,
+                parity=self.parity,
+                stop=self.stop,
+                tx=self.tx_pin,
+                rx=self.rx_pin)
+            return self
+        return super().__enter__()
 
+    # pylint: disable=arguments-differ
     def __exit__(self, *exc):
-        self.deinit()
-        return False
+        """Deinitialize the serial port ("exit" ``with`` block)"""
+        if MICROPY:
+            self.deinit()
+            return False
+        return super().__exit__(*exc)
 
     def in_waiting(self):
         """The number of bytes waiting to be read on the open Serial port."""
-        return self.any()
+        with self:
+            return self.any()
+
+    def close(self):
+        """ deinitialize the port """
+        self.deinit()
+
+    def read_until(self, size=None):
+        """return a `bytearray` of received data.
+
+        :param int size: If left unspecified, returns everything in the buffer terminated
+            with a ``\n`` or internal timeout occurs. If specified, then returns everything the
+            buffer up to at most the ``size`` number of bytes or internal timeout occurs"""
+        if size is None:
+            return self.readline()
+        return self.read(size)

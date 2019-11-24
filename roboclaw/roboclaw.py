@@ -21,14 +21,24 @@ class Roboclaw:
     :param int retries: The amount of attempts to read/write data over the serial port. Defaults to 3.
     """
     def __init__(self, serial_obj, address=0x80, retries=3, packet_serial=True):
-        self._port = serial_obj
-        if self._port.is_open:
-            self._port.close()
+        self.serial_obj = serial_obj
+        self.serial_obj.close()
         self._retries = retries
         self.packet_serial = packet_serial #: this `bool` represents if using packet serial mode.
         if address not in range(0x80, 0x88):
             raise ValueError('Unsupported specified address: {address}')
-        self._address = bytes([address])
+        self._address = address
+
+    @property
+    def address(self):
+        """The Address of the specific Roboclaw device on the object's serial port
+        Must be in range [``0x80``, ``0x87``]"""
+        return self._address
+
+    @address.setter
+    def address(self, addr):
+        assert addr in range(0x80, 0x88)
+        self._address = addr
 
     def _send(self, buf, ack=None, address=None, crc=True):
         """
@@ -47,18 +57,18 @@ class Roboclaw:
         """
         trys = self._retries
         assert address is None or address in range(0x80, 0x88)
-        buf = (self._address if address is None else bytes([address])) + buf
+        buf = bytes(([self._address] if address is None else [address])) + buf
         if self.packet_serial:
             crc = crc16(buf)
             buf += bytes([crc >> 8, crc & 0xff])
-        with self._port as ser:
+        with self.serial_obj as ser:
             while trys:
                 ser.write(buf)
                 if ack is None: # expects blanket ack
                     if unpack('>B', ser.read(1))[0] == 0xff:
                         return True
                 elif not ack:
-                    return ser.readline() # special case ack terminated w/ '\n' char
+                    return ser.read_until() # special case ack terminated w/ '\n' char
                 else: # for passing ack to _recv()
                     return ser.read(ack + (2 if self.packet_serial and crc else 0))
                 trys -= 1

@@ -1,3 +1,5 @@
+Vanilla (examples from original library)
+========================================
 
 Bare Minimum
 ------------

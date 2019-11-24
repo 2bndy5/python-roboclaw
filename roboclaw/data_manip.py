@@ -55,27 +55,29 @@ def crc_bits(data, bit_length, deg_poly, init_value):
     return crc & make_poly(bit_length)  # return only the remainder
 
 
-def validate16(message, deg_poly=0x1021, init_value=0):
-    """Validates a received message by comparing the calculated 16-bit checksum with the
-    checksum included at the end of the message"""
-    print(hex(struct.unpack('>H', message[-2:])[0]),
-          '==', crc16(message[:-2], deg_poly, init_value))
-    return struct.unpack('>H', message[-2:])[0] == crc16(message[:-2], deg_poly, init_value)
+def validate16(data, deg_poly=0x1021, init_value=0):
+    """Validates a received data by comparing the calculated 16-bit checksum with the
+    checksum included at the end of the data"""
+    cal_d = crc_bits(data[:-2], 16, deg_poly, init_value)
+    rcv_d = struct.unpack('>H', data[-2:])[0]
+    # print(cal_d == rcv_d)
+    return cal_d == rcv_d
 
 
-def validate(data, bit_length, deg_poly, init_value):
-    """Validates a received  checksum of various sized buffers
+# def validate(data, bit_length, deg_poly, init_value):
+#     """Validates a received  checksum of various sized buffers
 
-    :param bytearray data: This `bytearray` of data to be uncorrupted.
-    :param int bit_length: The length of bits that will represent the checksum.
-    :param int deg_poly: A preset "degree polynomial" in which each bit represents a degree who's
-        coefficient is 1.
-    :param int init_value: This will be the value that the checksum will use while shifting in the
-        buffer data.
+#     :param bytearray data: This `bytearray` of data to be uncorrupted.
+#     :param int bit_length: The length of bits that will represent the checksum.
+#     :param int deg_poly: A preset "degree polynomial" in which each bit represents a degree who's
+#         coefficient is 1.
+#     :param int init_value: This will be the value that the checksum will use while shifting in the
+#         buffer data.
 
-    :Returns: `True` if data was uncorrupted. `False` if something went wrong.
-        (either checksum didn't match or payload is altered).
-    """
-    print(hex(struct.unpack('>H', data[-(bit_length / 8):])[0]), '==', crc_bits(
-        data[:-(bit_length / 8)], bit_length, deg_poly, init_value))
-    return struct.unpack('>H', data[-(bit_length / 8):])[0] == crc_bits(data[:-(bit_length / 8)], bit_length, deg_poly, init_value)
+#     :Returns: `True` if data was uncorrupted. `False` if something went wrong.
+#         (either checksum didn't match or payload is altered).
+#     """
+#     cal_d = crc_bits(data[:-(bit_length / 8)], bit_length, deg_poly, init_value)
+#     rcv_d = struct.unpack('>H', data[-(bit_length / 8):])[0]
+#     print(cal_d == rcv_d)
+#     return cal_d == rcv_d

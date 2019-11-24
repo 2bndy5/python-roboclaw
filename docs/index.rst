@@ -5,12 +5,11 @@
 
 .. include:: ../README.rst
 
-Introduction
-====================================
+Table of Contents
+=================
 
 .. toctree::
-    :maxdepth: 2
-    :caption: Contents:
+    :caption: Python-Roboclaw
 
     self
 
@@ -24,6 +23,13 @@ Introduction
     :maxdepth: 5
 
     api
+
+.. toctree::
+    :caption: Other Links
+
+    BasicMicro Motor Controllers <https://www.basicmicro.com/motor-controller>
+    BasicMicro Documentation & Downloads <https://www.basicmicro.com/downloads>
+    GitHub Repository <https://github.com/2bndy5/python-roboclaw>
 
 Indices and tables
 ==================

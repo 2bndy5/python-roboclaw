@@ -42,6 +42,8 @@ intersphinx_mapping = {
     'CircuitPython': ('https://circuitpython.readthedocs.io/en/latest/', None),
     'MicroPython' : ('http://docs.micropython.org/en/latest/', None),
     'circuitpython-nrf24l01':('https://circuitpython-nrf24l01.readthedocs.io/en/stable/', None),
+    'Drivetrain' : ('https://drivetrain.readthedocs.io/en/latest/', None),
+    'Adafruit-motor-Library ' : ('https://circuitpython.readthedocs.io/projects/motor/en/latest/', None),
     'PySerial' : ('https://pyserial.readthedocs.io/en/latest/', None)
 }
 # Add any paths that contain templates here, relative to this directory.
