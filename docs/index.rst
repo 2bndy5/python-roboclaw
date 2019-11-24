@@ -9,7 +9,6 @@ Table of Contents
 =================
 
 .. toctree::
-    :caption: Python-Roboclaw
 
     self
 
