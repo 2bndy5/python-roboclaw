@@ -1,4 +1,8 @@
 
+.. image:: https://readthedocs.org/projects/python-roboclaw/badge/?version=latest
+    :target: https://python-roboclaw.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 Introduction
 ----------------
 
