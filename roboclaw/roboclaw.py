@@ -59,18 +59,20 @@ class Roboclaw:
         assert address is None or address in range(0x80, 0x88)
         buf = bytes(([self._address] if address is None else [address])) + buf
         if self.packet_serial:
-            crc = crc16(buf)
-            buf += bytes([crc >> 8, crc & 0xff])
-        with self.serial_obj as ser:
+            checksum = crc16(buf)
+            buf += bytes([checksum >> 8, checksum & 0xff])
+        with self.serial_obj:
             while trys:
-                ser.write(buf)
+                self.serial_obj.write(buf)
                 if ack is None: # expects blanket ack
-                    if unpack('>B', ser.read(1))[0] == 0xff:
-                        return True
+                    response = self.serial_obj.read(1)
+                    if response: # if not timeout
+                        if unpack('>B', response)[0] == 0xff:
+                            return True
                 elif not ack:
-                    return ser.read_until() # special case ack terminated w/ '\n' char
+                    return self.serial_obj.read_until() # special case ack terminated w/ '\n' char
                 else: # for passing ack to _recv()
-                    return ser.read(ack + (2 if self.packet_serial and crc else 0))
+                    return self.serial_obj.read(ack + (2 if self.packet_serial and crc else 0))
                 trys -= 1
         return False
 

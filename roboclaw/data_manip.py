@@ -1,6 +1,5 @@
 """A module for manipulating dat including generating CRC values and datatype constraints.
 For more information on how CRC algorithms work: https://www.zlib.net/crc_v3.txt"""
-import struct
 
 def make_poly(bit_length, msb=False):
     """Make `int` "degree polynomial" in which each bit represents a degree who's coefficient is 1
@@ -19,7 +18,6 @@ def crc16(data, deg_poly=0x1021, init_value=0):
     """Calculates a checksum of 16-bit length"""
     return crc_bits(data, 16, deg_poly, init_value)
 
-
 def crc32(data, deg_poly=0x5b06, init_value=0x555555):
     """Calculates a checksum of 32-bit length. Default ``deg_poly`` and ``init_value`` values
     are BLE compliant."""
@@ -37,9 +35,15 @@ def crc_bits(data, bit_length, deg_poly, init_value):
     """
     crc = init_value
     mask = make_poly(bit_length, msb=True)  # 0x8000
-    for i, byte in enumerate(data):  # for each byte
-        if i:  # shift out initial value 1 byte @ a time.
-            crc ^= (byte << 8)
+    for _ in range(8): # shift out initial value 1 bit @ a time.
+        if crc & mask:  # if divisible
+            # 0x1021 is a standard polynomial used for crc16 algorithms
+            # behaves like unsigned subtraction
+            crc = (crc << 1) ^ deg_poly
+        else:
+            crc = crc << 1  # bring down next bit for binary
+    for byte in data:  # for each byte
+        crc ^= (byte << 8)
         for _ in range(8):  # for each bit
             if crc & mask:  # if divisible
                 # 0x1021 is a standard polynomial used for crc16 algorithms
@@ -49,15 +53,10 @@ def crc_bits(data, bit_length, deg_poly, init_value):
                 crc = crc << 1  # bring down next bit for binary long-division
     return crc & make_poly(bit_length)  # return only the remainder
 
-
 def validate16(data, deg_poly=0x1021, init_value=0):
     """Validates a received data by comparing the calculated 16-bit checksum with the
     checksum included at the end of the data"""
-    cal_d = crc_bits(data[:-2], 16, deg_poly, init_value)
-    rcv_d = struct.unpack('>H', data[-2:])[0]
-    print(validate(data, 16, deg_poly, init_value))
-    return cal_d == rcv_d
-
+    return validate(data, 16, deg_poly, init_value)
 
 def validate(data, bit_length, deg_poly, init_value):
     """Validates a received  checksum of various sized buffers
