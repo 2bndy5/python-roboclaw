@@ -61,8 +61,7 @@ class SerialUART(UART):
 
     def in_waiting(self):
         """The number of bytes waiting to be read on the open Serial port."""
-        with self:
-            return self.any()
+        return self.any()
 
     def close(self):
         """ deinitialize the port """

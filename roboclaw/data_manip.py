@@ -2,7 +2,6 @@
 For more information on how CRC algorithms work: https://www.zlib.net/crc_v3.txt"""
 import struct
 
-
 def make_poly(bit_length, msb=False):
     """Make `int` "degree polynomial" in which each bit represents a degree who's coefficient is 1
 
@@ -16,9 +15,6 @@ def make_poly(bit_length, msb=False):
         result += 0xff << int(x * 8)
     return result
 
-#
-
-
 def crc16(data, deg_poly=0x1021, init_value=0):
     """Calculates a checksum of 16-bit length"""
     return crc_bits(data, 16, deg_poly, init_value)
@@ -28,7 +24,6 @@ def crc32(data, deg_poly=0x5b06, init_value=0x555555):
     """Calculates a checksum of 32-bit length. Default ``deg_poly`` and ``init_value`` values
     are BLE compliant."""
     return crc_bits(data, 32, deg_poly, init_value)
-
 
 def crc_bits(data, bit_length, deg_poly, init_value):
     """Calculates a checksum of various sized buffers
@@ -43,7 +38,7 @@ def crc_bits(data, bit_length, deg_poly, init_value):
     crc = init_value
     mask = make_poly(bit_length, msb=True)  # 0x8000
     for i, byte in enumerate(data):  # for each byte
-        if i:  # shift out initial value 1 bit @ a time.
+        if i:  # shift out initial value 1 byte @ a time.
             crc ^= (byte << 8)
         for _ in range(8):  # for each bit
             if crc & mask:  # if divisible
@@ -60,24 +55,26 @@ def validate16(data, deg_poly=0x1021, init_value=0):
     checksum included at the end of the data"""
     cal_d = crc_bits(data[:-2], 16, deg_poly, init_value)
     rcv_d = struct.unpack('>H', data[-2:])[0]
-    # print(cal_d == rcv_d)
+    print(validate(data, 16, deg_poly, init_value))
     return cal_d == rcv_d
 
 
-# def validate(data, bit_length, deg_poly, init_value):
-#     """Validates a received  checksum of various sized buffers
+def validate(data, bit_length, deg_poly, init_value):
+    """Validates a received  checksum of various sized buffers
 
-#     :param bytearray data: This `bytearray` of data to be uncorrupted.
-#     :param int bit_length: The length of bits that will represent the checksum.
-#     :param int deg_poly: A preset "degree polynomial" in which each bit represents a degree who's
-#         coefficient is 1.
-#     :param int init_value: This will be the value that the checksum will use while shifting in the
-#         buffer data.
+    :param bytearray data: This `bytearray` of data to be uncorrupted.
+    :param int bit_length: The length of bits that will represent the checksum.
+    :param int deg_poly: A preset "degree polynomial" (in which each bit represents a degree who's
+        coefficient is 1) as a quotient.
+    :param int init_value: This will be the value that the checksum will use while shifting in the
+        buffer data.
 
-#     :Returns: `True` if data was uncorrupted. `False` if something went wrong.
-#         (either checksum didn't match or payload is altered).
-#     """
-#     cal_d = crc_bits(data[:-(bit_length / 8)], bit_length, deg_poly, init_value)
-#     rcv_d = struct.unpack('>H', data[-(bit_length / 8):])[0]
-#     print(cal_d == rcv_d)
-#     return cal_d == rcv_d
+    :Returns: `True` if data was uncorrupted. `False` if something went wrong.
+        (either checksum didn't match or payload is altered).
+    """
+    cal_d = crc_bits(data[:-(bit_length / 8)], bit_length, deg_poly, init_value)
+    rcv_d = 0
+    for byte in data[-(bit_length / 8):]:
+        rcv_d = (rcv_d << 8) | byte
+    print(cal_d == rcv_d)
+    return cal_d == rcv_d
