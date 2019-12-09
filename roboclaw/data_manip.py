@@ -5,8 +5,8 @@ import struct
 def make_poly(bit_length, msb=False):
     """Make `int` "degree polynomial" in which each bit represents a degree who's coefficient is 1
 
-    :params int bit_length: The amount of bits to play with
-    :params bool msb: `True` make only the MSBit 1 and the rest a 0. `False` makes all bits 1.
+    :param int bit_length: The amount of bits to play with
+    :param bool msb: `True` make only the MSBit 1 and the rest a 0. `False` makes all bits 1.
     """
     if msb:
         return 1 << ((8 * int(bit_length / 8)) - 1)
