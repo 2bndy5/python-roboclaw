@@ -4,18 +4,28 @@
 
 import time
 from roboclaw import Roboclaw
+try:  # if on win32 or linux
+    from serial import SerialException, Serial as UART
+except ImportError:
+    try:  # try CircuitPython
+        from board import UART
+    except ImportError:
+        try:  # try MicroPythom
+            from roboclaw.usart_serial_ctx import SerialUART as UART
 
 # Windows comport name
-rc = Roboclaw("COM3", 115200)
+# rc = Roboclaw(UART("COM3", 115200))
 # Linux comport name
-# rc = Roboclaw("/dev/ttyACM0", 115200)
+# rc = Roboclaw(UART("/dev/ttyACM0", 115200))
+# if CircuitPython or MicroPythom
+rc = Roboclaw(UART(), address=0x80)
 
 
 def displayspeed():
-    enc1 = rc.ReadEncM1(address)
-    enc2 = rc.ReadEncM2(address)
-    speed1 = rc.ReadSpeedM1(address)
-    speed2 = rc.ReadSpeedM2(address)
+    enc1 = rc.read_encoder_m1()
+    enc2 = rc.read_encoder_m2()
+    speed1 = rc.read_speed_m1()
+    speed2 = rc.read_speed_m2()
 
     print("Encoder1:")
     if enc1[0] == 1:
@@ -41,12 +51,9 @@ def displayspeed():
         print("failed ")
 
 
-rc.Open()
-address = 0x80
-
 while 1:
     print("Pos 50000")
-    rc.SpeedAccelDeccelPositionM1(address, 32000, 12000, 32000, 50000, 0)
+    rc.speed_accel_deccel_position_m1(32000, 12000, 32000, 50000, 0)
     for i in range(0, 80):
         displayspeed()
         time.sleep(0.1)
@@ -54,7 +61,7 @@ while 1:
     time.sleep(2)
 
     print("Pos 0")
-    rc.SpeedAccelDeccelPositionM1(address, 32000, 12000, 32000, 0, 0)
+    rc.speed_accel_deccel_position_m1(32000, 12000, 32000, 0, 0)
     for i in range(0, 80):
         displayspeed()
         time.sleep(0.1)
